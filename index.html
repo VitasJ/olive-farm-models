@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olive Farm Acquisition — Portfolio Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #f0f0ee; min-height: 100vh; }
+
+  /* Header */
+  .hdr { background: #1F4E79; color: #fff; padding: 28px 40px 24px; }
+  .hdr-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; }
+  .hdr h1 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 4px; }
+  .hdr p { font-size: 12px; opacity: .7; }
+  .hdr-meta { text-align: right; font-size: 11px; opacity: .6; }
+
+  /* Page */
+  .page { max-width: 1200px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* Summary strip */
+  .summary-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .sum-card { background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; padding: 14px 18px; }
+  .sum-label { font-size: 10px; font-weight: 600; color: #999; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 4px; }
+  .sum-value { font-size: 22px; font-weight: 700; color: #1F4E79; }
+  .sum-sub { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  /* Section header */
+  .section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; margin-top: 4px; }
+  .section-hdr h2 { font-size: 11px; font-weight: 700; color: #888; letter-spacing: .08em; text-transform: uppercase; }
+
+  /* Farm grid */
+  .farm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+  /* Farm card */
+  .farm-card { background: #fff; border: 1px solid #e0e0dc; border-radius: 10px; overflow: hidden; transition: box-shadow .15s, transform .15s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+  .farm-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.1); transform: translateY(-2px); }
+  .farm-card.placeholder { cursor: default; opacity: .55; }
+  .farm-card.placeholder:hover { box-shadow: none; transform: none; }
+
+  .card-top { padding: 16px 18px 12px; border-bottom: 1px solid #f0f0ee; }
+  .card-flag { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+  .flag-active { background: #e2efda; color: #27500a; }
+  .flag-pending { background: #fff2cc; color: #7f5000; }
+  .flag-soon { background: #f0f0ee; color: #888; }
+  .card-name { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+  .card-location { font-size: 11px; color: #888; margin-bottom: 10px; }
+
+  .card-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .metric { background: #f5f5f3; border-radius: 5px; padding: 7px 9px; }
+  .metric-label { font-size: 9px; font-weight: 600; color: #aaa; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
+  .metric-value { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+  .metric.hi { background: #deeaf1; }
+  .metric.hi .metric-value { color: #1F4E79; }
+  .metric.go { background: #e2efda; }
+  .metric.go .metric-value { color: #27500a; }
+  .metric.amber { background: #fff2cc; }
+  .metric.amber .metric-value { color: #7f5000; }
+
+  .card-bottom { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .card-stage { font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .stage-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dot-green { background: #52b252; }
+  .dot-amber { background: #e6a817; }
+  .dot-grey  { background: #ccc; }
+  .card-link { font-size: 11px; font-weight: 600; color: #1F4E79; display: flex; align-items: center; gap: 4px; }
+  .card-link:hover { text-decoration: underline; }
+
+  /* Notes section */
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .note-card { background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; padding: 14px 16px; }
+  .note-farm { font-size: 11px; font-weight: 700; color: #1F4E79; margin-bottom: 5px; }
+  .note-text { font-size: 12px; color: #555; line-height: 1.5; }
+
+  /* How to update banner */
+  .update-banner { background: #1F4E79; color: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 28px; display: flex; align-items: center; gap: 16px; }
+  .update-banner-icon { font-size: 22px; }
+  .update-banner-text { flex: 1; font-size: 12px; line-height: 1.6; opacity: .9; }
+  .update-banner-text strong { opacity: 1; }
+
+  .footer { text-align: center; font-size: 11px; color: #bbb; margin-top: 40px; }
+
+  /* Responsive */
+  @media(max-width: 600px) {
+    .hdr { padding: 20px; }
+    .hdr-inner { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .farm-grid { grid-template-columns: 1fr; }
+    .card-metrics { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-inner">
+    <div>
+      <h1>🫒 Olive Farm Acquisition Portfolio</h1>
+      <p>Jaén, Spain &middot; Interactive financial models &middot; All figures are estimates</p>
+    </div>
+    <div class="hdr-meta">
+      Last updated: April 2026<br>
+      Models open in browser — no login required
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HOW TO UPDATE -->
+  <div class="update-banner">
+    <div class="update-banner-icon">⚡</div>
+    <div class="update-banner-text">
+      <strong>To update a model:</strong> Make changes in your Claude chat → copy the updated HTML → paste it into the corresponding file in GitHub → save. The live URL updates within 60 seconds. To add a new farm, duplicate one of the existing HTML files, update the inputs, and add a new card below.
+    </div>
+  </div>
+
+  <!-- PORTFOLIO SUMMARY -->
+  <div class="section-hdr"><h2>Portfolio summary</h2></div>
+  <div class="summary-strip">
+    <div class="sum-card">
+      <div class="sum-label">Farms evaluated</div>
+      <div class="sum-value" id="farmCount">2</div>
+      <div class="sum-sub">active models</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Total area</div>
+      <div class="sum-value">~2,800 ha</div>
+      <div class="sum-sub">across all farms</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Price range</div>
+      <div class="sum-value">€14–22k</div>
+      <div class="sum-sub">€/ha blended est.</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Olive price assumption</div>
+      <div class="sum-value">€1.00/kg</div>
+      <div class="sum-sub">wholesale base case</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Farms worth pursuing</div>
+      <div class="sum-value" id="worthCount">TBD</div>
+      <div class="sum-sub">pending full analysis</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE FARMS -->
+  <div class="section-hdr"><h2>Active evaluations</h2></div>
+  <div class="farm-grid">
+
+    <!-- FINCA MOSTAZAR -->
+    <a class="farm-card" href="mostazar.html" target="_blank">
+      <div class="card-top">
+        <div class="card-flag flag-active">✓ Model ready</div>
+        <div class="card-name">Finca Mostazar</div>
+        <div class="card-location">📍 Sabiote / Villacarrillo, Jaén &middot; Owner: Calancha S.A.</div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-label">Total area</div><div class="metric-value">800 ha</div></div>
+          <div class="metric"><div class="metric-label">Olive (current)</div><div class="metric-value">333 ha</div></div>
+          <div class="metric"><div class="metric-label">Olive (rdev.)</div><div class="metric-value">631 ha</div></div>
+          <div class="metric hi"><div class="metric-label">Acq. price est.</div><div class="metric-value">€14k/ha</div></div>
+          <div class="metric hi"><div class="metric-label">Water</div><div class="metric-value">290k m³</div></div>
+          <div class="metric hi"><div class="metric-label">PAC subsidy</div><div class="metric-value">€171k/yr</div></div>
+          <div class="metric go"><div class="metric-label">Scen A IRR 10yr</div><div class="metric-value">Open ↗</div></div>
+          <div class="metric amber"><div class="metric-label">Scen B IRR 10yr</div><div class="metric-value">Open ↗</div></div>
+          <div class="metric"><div class="metric-label">CAPEX (rdev.)</div><div class="metric-value">~€6.4M</div></div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stage"><span class="stage-dot dot-amber"></span> Due diligence — awaiting asking price</div>
+        <div class="card-link">Open model ↗</div>
+      </div>
+    </a>
+
+    <!-- EL MESTO -->
+    <a class="farm-card" href="el-mesto.html" target="_blank">
+      <div class="card-top">
+        <div class="card-flag flag-active">✓ Model ready</div>
+        <div class="card-name">El Mesto</div>
+        <div class="card-location">📍 Montizón / Chiclana de Segura, Jaén &middot; Multiple fincas</div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-label">Total area</div><div class="metric-value">~2,000 ha</div></div>
+          <div class="metric"><div class="metric-label">Olive (current)</div><div class="metric-value">~1,087 ha</div></div>
+          <div class="metric"><div class="metric-label">Olive (rdev.)</div><div class="metric-value">TBC</div></div>
+          <div class="metric hi"><div class="metric-label">Acq. price est.</div><div class="metric-value">€20–30k/ha</div></div>
+          <div class="metric hi"><div class="metric-label">Water</div><div class="metric-value">350k m³ storage</div></div>
+          <div class="metric hi"><div class="metric-label">PAC subsidy</div><div class="metric-value">Est. TBC</div></div>
+          <div class="metric go"><div class="metric-label">Scen A IRR 10yr</div><div class="metric-value">Open ↗</div></div>
+          <div class="metric amber"><div class="metric-label">Scen B IRR 10yr</div><div class="metric-value">Open ↗</div></div>
+          <div class="metric"><div class="metric-label">SHD existing</div><div class="metric-value">336 ha</div></div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stage"><span class="stage-dot dot-amber"></span> Initial evaluation — model under review</div>
+        <div class="card-link">Open model ↗</div>
+      </div>
+    </a>
+
+    <!-- PLACEHOLDER — Farm C -->
+    <div class="farm-card placeholder">
+      <div class="card-top">
+        <div class="card-flag flag-soon">⋯ Coming soon</div>
+        <div class="card-name">Farm C</div>
+        <div class="card-location">📍 Location TBC &middot; Jaén, Spain</div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-label">Total area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Olive area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Status</div><div class="metric-value">Pending</div></div>
+          <div class="metric hi"><div class="metric-label">Acq. price</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">Water</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">PAC</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR est.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR rdev.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">CAPEX</div><div class="metric-value">—</div></div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stage"><span class="stage-dot dot-grey"></span> Not yet started</div>
+        <div class="card-link" style="color:#ccc;">No model yet</div>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER — Farm D -->
+    <div class="farm-card placeholder">
+      <div class="card-top">
+        <div class="card-flag flag-soon">⋯ Coming soon</div>
+        <div class="card-name">Farm D</div>
+        <div class="card-location">📍 Location TBC &middot; Jaén, Spain</div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-label">Total area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Olive area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Status</div><div class="metric-value">Pending</div></div>
+          <div class="metric hi"><div class="metric-label">Acq. price</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">Water</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">PAC</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR est.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR rdev.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">CAPEX</div><div class="metric-value">—</div></div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stage"><span class="stage-dot dot-grey"></span> Not yet started</div>
+        <div class="card-link" style="color:#ccc;">No model yet</div>
+      </div>
+    </div>
+
+    <!-- PLACEHOLDER — Farm E -->
+    <div class="farm-card placeholder">
+      <div class="card-top">
+        <div class="card-flag flag-soon">⋯ Coming soon</div>
+        <div class="card-name">Farm E</div>
+        <div class="card-location">📍 Location TBC &middot; Jaén, Spain</div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-label">Total area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Olive area</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">Status</div><div class="metric-value">Pending</div></div>
+          <div class="metric hi"><div class="metric-label">Acq. price</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">Water</div><div class="metric-value">—</div></div>
+          <div class="metric hi"><div class="metric-label">PAC</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR est.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">IRR rdev.</div><div class="metric-value">—</div></div>
+          <div class="metric"><div class="metric-label">CAPEX</div><div class="metric-value">—</div></div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="card-stage"><span class="stage-dot dot-grey"></span> Not yet started</div>
+        <div class="card-link" style="color:#ccc;">No model yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DEAL NOTES -->
+  <div class="section-hdr"><h2>Deal notes &amp; status</h2></div>
+  <div class="notes-grid">
+    <div class="note-card">
+      <div class="note-farm">Finca Mostazar</div>
+      <div class="note-text">Asking price not yet confirmed — model uses €14k/ha blended estimate. Key outstanding items: actual yield data per block, operating cost breakdown, machinery inventory. Soil quality (clay-loam, >1m depth) is a positive. Biogas option (10–15 ha) not modelled — treat as upside.</div>
+    </div>
+    <div class="note-card">
+      <div class="note-farm">El Mesto</div>
+      <div class="note-text">Asking price estimated €20–30k/ha. Large scale (~2,000 ha) with existing SHD Arbequina block (336 ha) already producing. Fighting bull operation embedded — excluded from olive model. Strong water infrastructure (350k m³ storage + 9 boreholes). No PAC figure confirmed.</div>
+    </div>
+    <div class="note-card" style="background:#f5f5f3;border-style:dashed;">
+      <div class="note-farm" style="color:#aaa;">Farm C — add notes here</div>
+      <div class="note-text" style="color:#bbb;">Deal notes will appear here once evaluation begins. Update this card in index.html when uploading new farm documents to Claude.</div>
+    </div>
+    <div class="note-card" style="background:#f5f5f3;border-style:dashed;">
+      <div class="note-farm" style="color:#aaa;">Farm D — add notes here</div>
+      <div class="note-text" style="color:#bbb;">Deal notes will appear here once evaluation begins.</div>
+    </div>
+    <div class="note-card" style="background:#f5f5f3;border-style:dashed;">
+      <div class="note-farm" style="color:#aaa;">Farm E — add notes here</div>
+      <div class="note-text" style="color:#bbb;">Deal notes will appear here once evaluation begins.</div>
+    </div>
+  </div>
+
+  <div class="footer">Olive Farm Acquisition Portfolio &mdash; Confidential &mdash; For internal use only &mdash; All figures are estimates, not investment advice</div>
+</div>
+
+</body>
+</html>

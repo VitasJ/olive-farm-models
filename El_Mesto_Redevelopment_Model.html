@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Mesto — Olive Farm Acquisition Model</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #f5f5f3; line-height: 1.5; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .hdr { background: #2d6a2d; color: #fff; border-radius: 10px; padding: 20px 24px 16px; margin-bottom: 24px; }
+  .hdr h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .hdr p  { font-size: 12px; opacity: .75; }
+
+  .scenario-bar { display:flex; gap:10px; margin-bottom:18px; }
+  .scen-btn { flex:1; padding:10px 16px; border-radius:7px; border:2px solid #ccc; background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#555; transition:all .15s; }
+  .scen-btn.active { background:#2d6a2d; color:#fff; border-color:#2d6a2d; }
+
+  .section { background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; padding: 20px 22px; margin-bottom: 18px; }
+  .section-title { font-size: 10px; font-weight: 600; color: #888; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .slider-label { font-size: 12px; color: #555; min-width: 230px; }
+  .slider-row input[type=range] { flex: 1; accent-color: #2d6a2d; height: 4px; cursor: pointer; }
+  .slider-val { font-size: 12px; font-weight: 600; color: #1a1a1a; min-width: 80px; text-align: right; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); gap: 10px; margin-top: 4px; }
+  .card { background: #f5f5f3; border-radius: 6px; padding: 12px 14px; }
+  .card.accent { background: #fff; border: 1px solid #d0d9e3; }
+  .card.green  { background: #eaf3de; border: 1px solid #b6d48a; }
+  .card.amber  { background: #fff2cc; border: 1px solid #e6c400; }
+  .card.red    { background: #fce4d6; border: 1px solid #e09070; }
+  .card.blue   { background: #deeaf1; border: 1.5px solid #1F4E79; }
+  .card-label { font-size: 11px; color: #777; margin-bottom: 4px; }
+  .card-value { font-size: 20px; font-weight: 600; color: #1a1a1a; line-height: 1.2; }
+  .card-sub   { font-size: 10px; color: #999; margin-top: 3px; }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #eee; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; font-weight: 500; color: #444; }
+  th { background: #f0f0ee; color: #555; font-weight: 600; font-size: 11px; }
+  tr:hover td { background: #fafaf8; }
+  tr.sec td { background: #d9ead3; font-weight: 600; color: #1e4d1e; font-size: 11px; letter-spacing:.04em; text-transform:uppercase; }
+  tr.tot td { background: #b6d7a8; font-weight: 700; }
+  tr.ebt td { font-weight: 700; background: #e2efda; }
+  tr.fcf td { font-weight: 700; background: #e2efda; }
+  tr.irr-row td { font-weight: 700; background: #deeaf1; }
+  tr.hi  td { background: #f5f5f3; font-weight: 600; }
+  tr.grace td { color: #c07020; font-style: italic; font-size: 10px; }
+  td.neg { color: #c0392b; }
+  td.pos { color: #27ae60; }
+  td.neu { color: #888; }
+
+  .verdict { border-radius: 7px; padding: 12px 16px; font-size: 13px; font-weight: 500; margin-top: 14px; line-height: 1.5; }
+  .verdict.go     { background: #eaf3de; color: #27500a; border: 1px solid #b6d48a; }
+  .verdict.caution{ background: #fff2cc; color: #7f5000; border: 1px solid #e6c400; }
+  .verdict.stop   { background: #fce4d6; color: #843c0c; border: 1px solid #e09070; }
+
+  .info { background: #d9ead3; color: #1e4d1e; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin: 10px 0; border: 1px solid #93c47d; line-height: 1.6; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:720px){ .two-col { grid-template-columns: 1fr; } }
+
+  .fac-box { border: 1px solid #d0d9e3; border-radius: 7px; padding: 14px 16px; background: #fafcff; }
+  .fac-title { font-size: 11px; font-weight: 700; color: #2d6a2d; letter-spacing:.05em; text-transform:uppercase; margin-bottom:10px; border-bottom:1px solid #d0d9e3; padding-bottom:6px; }
+  .fac-row { display:flex; justify-content:space-between; align-items:baseline; padding:4px 0; border-bottom:1px solid #f0f0ee; font-size:12px; }
+  .fac-row:last-child { border-bottom:none; }
+  .fac-row-label { color:#666; }
+  .fac-row-val   { font-weight:600; color:#1a1a1a; }
+
+  .footer { text-align:center; font-size:11px; color:#aaa; margin-top:32px; }
+  hr { border:none; border-top:1px solid #e8e8e4; margin:6px 0 16px; }
+  select { font-size:12px; padding:4px 8px; border:1px solid #ccc; border-radius:4px; background:#fff; cursor:pointer; }
+
+  .land-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:4px; }
+  .land-table th { background:#f0f0ee; padding:5px 10px; text-align:right; font-size:11px; color:#555; }
+  .land-table th:first-child { text-align:left; }
+  .land-table td { padding:5px 10px; text-align:right; border-bottom:1px solid #f0f0ee; }
+  .land-table td:first-child { text-align:left; font-weight:500; }
+  .land-table tr.subtot td { font-weight:700; background:#f5f5f3; }
+  .land-table tr.grandtot td { font-weight:700; background:#b6d7a8; }
+  .conv-note { display:none; }
+  .conv-note.show { display:block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <h1>El Mesto (Palancares y Solana Isabelica) — Acquisition Model</h1>
+    <p>Montizón &amp; Chiclana de Segura, Jaén | 1,705.94 ha total | September 2024 dossier</p>
+  </div>
+
+  <!-- SCENARIO TOGGLE -->
+  <div class="scenario-bar">
+    <button class="scen-btn active" id="btnCurrent" onclick="setScenario('current')">📊 Scenario A — Current State<br><span style="font-size:11px;font-weight:400;">Existing olive blocks only. Non-olive land as-is.</span></button>
+    <button class="scen-btn" id="btnRedo" onclick="setScenario('redo')">🌿 Scenario B — Full Redevelopment<br><span style="font-size:11px;font-weight:400;">Convert all arable (267.6 ha) + dehesa (350.6 ha) to SHD.</span></button>
+  </div>
+
+  <div class="info" id="scenInfo">
+    <strong>Scenario A — Current State.</strong> Revenue modelled on existing olive blocks only: SHD Arbequina (335.68 ha), Intensive Picual irrigated (141.79 ha), Traditional Picual dryland (610.29 ha). Non-olive land (arable 267.59 ha, dehesa/scrubland 350.57 ha) retained as-is with no olive revenue. No PAC subsidy included.
+  </div>
+
+  <div class="info" style="background:#fff8e1;border-color:#ffe082;color:#5d4000;">
+    <strong>⚠ Ownership transition assumptions:</strong> Staff &amp; overhead default is set at <strong>€400,000/yr — 80% of the estimated current run-rate of ~€500,000/yr</strong> under family ownership. This reflects expected fixed-cost contraction under institutional ownership through headcount rationalisation (currently 7 permanent staff), procurement consolidation, and removal of non-commercial cost items. Facility B (CAPEX loan) grace period defaulted to <strong>1 year</strong>, assuming the full conversion programme is deployed within Year 1.
+  </div>
+
+  <!-- LAND ALLOCATION -->
+  <div class="section">
+    <div class="section-title">Land allocation — from dossier</div>
+    <table class="land-table">
+      <thead><tr><th>Block</th><th>Ha</th><th>Type</th><th>Variety</th><th>Planted</th><th>Density</th><th>Scenario A</th><th id="colB">Scenario B</th></tr></thead>
+      <tbody>
+        <tr><td>SHD Arbequina #1</td><td>81.65</td><td>SHD irrigated</td><td>Arbequina</td><td>2006</td><td>~1,429/ha</td><td>Existing — producing</td><td>Retained</td></tr>
+        <tr><td>SHD Arbequina #2</td><td>142.54</td><td>SHD irrigated</td><td>Arbequina</td><td>2007</td><td>~1,250/ha</td><td>Existing — producing</td><td>Retained</td></tr>
+        <tr><td>SHD Arbequina #3</td><td>111.49</td><td>SHD irrigated</td><td>Arbequina</td><td>2010</td><td>~1,250/ha</td><td>Existing — producing</td><td>Retained</td></tr>
+        <tr class="subtot"><td>SHD Arbequina total</td><td>335.68</td><td></td><td></td><td></td><td></td><td>335.68 ha olive</td><td>335.68 ha olive</td></tr>
+        <tr><td>Intensive Picual irrigated</td><td>141.79</td><td>Intensive irrigated</td><td>Picual</td><td>2007–11</td><td>~205/ha</td><td>Existing — producing</td><td>Retained</td></tr>
+        <tr><td>Traditional Picual dryland</td><td>610.29</td><td>Traditional dryland</td><td>Picual</td><td>Mature</td><td>~83/ha</td><td>Existing — producing</td><td>Retained</td></tr>
+        <tr><td>Arable / cereal land</td><td>267.59</td><td>Non-olive</td><td>—</td><td>—</td><td>—</td><td>As-is (no olive rev.)</td><td style="color:#2d6a2d;font-weight:600;">Convert → new olive groves</td></tr>
+        <tr><td>Dehesa / scrubland</td><td>350.57</td><td>Non-olive</td><td>—</td><td>—</td><td>—</td><td>As-is (no olive rev.)</td><td style="color:#2d6a2d;font-weight:600;">Convert → new olive groves</td></tr>
+        <tr class="grandtot"><td>TOTAL FARM</td><td>1,705.94</td><td></td><td></td><td></td><td></td><td>1,087.76 ha olive</td><td id="totalOliveB">1,705.94 ha olive</td></tr>
+      </tbody>
+    </table>
+    <div class="cards" style="margin-top:12px;">
+      <div class="card accent"><div class="card-label">Total farm area</div><div class="card-value">1,705.94 ha</div><div class="card-sub">3 parcels combined</div></div>
+      <div class="card accent"><div class="card-label">Existing olive (Sc. A)</div><div class="card-value">1,087.76 ha</div><div class="card-sub">SHD + intensive + trad.</div></div>
+      <div class="card accent"><div class="card-label">Conversion area (Sc. B)</div><div class="card-value" id="convHaCard">618.16 ha</div><div class="card-sub">arable + dehesa → SHD</div></div>
+      <div class="card accent"><div class="card-label">Total olive post-redevelopment</div><div class="card-value">1,705.94 ha</div><div class="card-sub">100% of farm</div></div>
+      <div class="card accent"><div class="card-label">Water infrastructure</div><div class="card-value">350k m³</div><div class="card-sub">4 reservoirs + 9 boreholes</div></div>
+    </div>
+  </div>
+
+  <!-- ASSUMPTIONS -->
+  <div class="section">
+    <div class="section-title">Revenue &amp; operational assumptions</div>
+    <div class="two-col">
+      <div>
+        <div class="slider-row"><span class="slider-label">Acquisition price (€/ha)</span><input type="range" min="10000" max="30000" step="500" value="25000" id="pph"><span class="slider-val" id="pphO">€25,000</span></div>
+        <div class="slider-row"><span class="slider-label">CAPEX rate — new olive groves (€/ha)</span><input type="range" min="5000" max="14000" step="250" value="9000" id="cxPha"><span class="slider-val" id="cxPhaO">€9,000</span></div>
+        <div class="slider-row"><span class="slider-label">SHD Arbequina yield (kg/ha)</span><input type="range" min="3000" max="14000" step="250" value="8000" id="shdY"><span class="slider-val" id="shdYO">8,000 kg</span></div>
+        <div class="slider-row"><span class="slider-label">Intensive Picual yield (kg/ha)</span><input type="range" min="2000" max="9000" step="250" value="5500" id="intY"><span class="slider-val" id="intYO">5,500 kg</span></div>
+        <div class="slider-row"><span class="slider-label">Traditional Picual yield (kg/ha)</span><input type="range" min="500" max="4000" step="100" value="1800" id="tradY"><span class="slider-val" id="tradYO">1,800 kg</span></div>
+        <div class="slider-row"><span class="slider-label">New olive groves yield (kg/ha) — Sc. B</span><input type="range" min="500" max="12000" step="250" value="5000" id="newY"><span class="slider-val" id="newYO">5,000 kg</span></div>
+        <div class="slider-row"><span class="slider-label">Wholesale olive price (€/kg)</span><input type="range" min="0.50" max="3.00" step="0.05" value="1.00" id="op"><span class="slider-val" id="opO">€1.00</span></div>
+      </div>
+      <div>
+        <div class="slider-row"><span class="slider-label">SHD Arbequina op. cost (€/ha)</span><input type="range" min="800" max="3000" step="50" value="1500" id="ocShd"><span class="slider-val" id="ocShdO">€1,500</span></div>
+        <div class="slider-row"><span class="slider-label">Intensive Picual op. cost (€/ha)</span><input type="range" min="800" max="2500" step="50" value="1400" id="ocInt"><span class="slider-val" id="ocIntO">€1,400</span></div>
+        <div class="slider-row"><span class="slider-label">Traditional op. cost (€/ha)</span><input type="range" min="300" max="1500" step="50" value="700" id="ocTrad"><span class="slider-val" id="ocTradO">€700</span></div>
+        <div class="slider-row"><span class="slider-label">New olive groves op. cost (€/ha) — Sc. B</span><input type="range" min="300" max="3000" step="50" value="1000" id="ocNew"><span class="slider-val" id="ocNewO">€1,000</span></div>
+        <div class="slider-row"><span class="slider-label">Farm staff &amp; overhead (€/yr)</span><input type="range" min="300000" max="900000" step="25000" value="400000" id="staff"><span class="slider-val" id="staffO">€400,000</span></div>
+        <div class="slider-row"><span class="slider-label">Exit EBITDA multiple (×)</span><input type="range" min="8" max="20" step="1" value="10" id="exitM"><span class="slider-val" id="exitMO">10×</span></div>
+        <div class="slider-row"><span class="slider-label">Land appreciation (% p.a.)</span><input type="range" min="0" max="5" step="0.5" value="1.5" id="landA"><span class="slider-val" id="landAO">1.5%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEBT SLIDERS -->
+  <div class="section">
+    <div class="section-title">Debt — Facility A (land acquisition) &amp; Facility B (CAPEX — Scenario B only)</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#2d6a2d;margin-bottom:8px;">Facility A — Land</div>
+        <div class="slider-row"><span class="slider-label">LTV</span><input type="range" min="40" max="75" step="5" value="55" id="ltvA"><span class="slider-val" id="ltvAO">55%</span></div>
+        <div class="slider-row"><span class="slider-label">Interest rate</span><input type="range" min="2.0" max="6.0" step="0.25" value="3.25" id="rateA"><span class="slider-val" id="rateAO">3.25%</span></div>
+        <div class="slider-row"><span class="slider-label">Loan term (years)</span><input type="range" min="10" max="25" step="1" value="20" id="termA"><span class="slider-val" id="termAO">20 yrs</span></div>
+        <div class="slider-row"><span class="slider-label">Grace period (years)</span><input type="range" min="0" max="5" step="1" value="3" id="graceA"><span class="slider-val" id="graceAO">3 yrs</span></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#2d6a2d;margin-bottom:8px;">Facility B — CAPEX (Scenario B only)</div>
+        <div class="slider-row"><span class="slider-label">LTV</span><input type="range" min="40" max="80" step="5" value="60" id="ltvB"><span class="slider-val" id="ltvBO">60%</span></div>
+        <div class="slider-row"><span class="slider-label">Interest rate</span><input type="range" min="2.5" max="7.0" step="0.25" value="4.00" id="rateB"><span class="slider-val" id="rateBO">4.00%</span></div>
+        <div class="slider-row"><span class="slider-label">Loan term (years)</span><input type="range" min="8" max="20" step="1" value="15" id="termB"><span class="slider-val" id="termBO">15 yrs</span></div>
+        <div class="slider-row"><span class="slider-label">Grace period (years)</span><input type="range" min="0" max="5" step="1" value="1" id="graceB"><span class="slider-val" id="graceBO">1 yrs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEBT STRUCTURE -->
+  <div class="section">
+    <div class="section-title">Debt structure</div>
+    <div class="two-col">
+      <div class="fac-box">
+        <div class="fac-title">Facility A — Land</div>
+        <div class="fac-row"><span class="fac-row-label">Acquisition cost</span><span class="fac-row-val" id="s_acq">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Loan (LTV)</span><span class="fac-row-val" id="s_lA">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Equity required</span><span class="fac-row-val" id="s_eA">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Interest during grace (p.a.)</span><span class="fac-row-val" id="s_intAg">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">P&amp;I post-grace (p.a.)</span><span class="fac-row-val" id="s_pniA">—</span></div>
+      </div>
+      <div class="fac-box">
+        <div class="fac-title">Facility B — CAPEX <span id="facBNote" style="font-weight:400;color:#888;">(Sc. B only)</span></div>
+        <div class="fac-row"><span class="fac-row-label">Total CAPEX (incl. 10% cont.)</span><span class="fac-row-val" id="s_cx">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Loan (LTV)</span><span class="fac-row-val" id="s_lB">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Equity required</span><span class="fac-row-val" id="s_eB">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Interest during grace (p.a.)</span><span class="fac-row-val" id="s_intBg">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">P&amp;I post-grace (p.a.)</span><span class="fac-row-val" id="s_pniB">—</span></div>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:12px;">
+      <div class="card accent"><div class="card-label">Total investment</div><div class="card-value" id="s_totInv">—</div><div class="card-sub">acq. + CAPEX</div></div>
+      <div class="card accent"><div class="card-label">Total debt</div><div class="card-value" id="s_totDebt">—</div><div class="card-sub">Fac A + Fac B</div></div>
+      <div class="card accent"><div class="card-label">Total equity deployed</div><div class="card-value" id="s_totEq">—</div><div class="card-sub">cash required</div></div>
+      <div class="card accent"><div class="card-label">Blended LTV</div><div class="card-value" id="s_ltvBlend">—</div><div class="card-sub">debt / total inv.</div></div>
+      <div class="card accent"><div class="card-label">Gearing (D/E)</div><div class="card-value" id="s_gear">—</div><div class="card-sub">total debt / equity</div></div>
+    </div>
+  </div>
+
+  <!-- CASHFLOW TABLE -->
+  <div class="section">
+    <div class="section-title">Annual cashflow timeline — Year 0 to Year 10</div>
+    <div class="info" style="margin-bottom:10px;" id="rampNote">
+      <strong>Ramp (existing olive):</strong> Yr0 = 0%, Yr1 = 100% (existing blocks already mature). <span id="newRampNote"><strong>New olive groves ramp:</strong> Yr1=0%, Yr2=10%, Yr3=30%, Yr4=70%, Yr5+=100%. ★ marks exit years.</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">Period</th>
+            <th>Note</th>
+            <th>EBITDA</th>
+            <th>Fac A svc</th>
+            <th>Fac B svc</th>
+            <th>Total svc</th>
+            <th>Free CF</th>
+            <th>Cum. FCF</th>
+          </tr>
+        </thead>
+        <tbody id="cfBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STEADY STATE P&L -->
+  <div class="section">
+    <div class="section-title" id="plTitle">Steady-state P&amp;L (Year 1+ for Sc. A / Year 5+ for Sc. B)</div>
+    <div class="tbl-wrap">
+      <table><tbody id="plBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- RETURN METRICS -->
+  <div class="section">
+    <div class="section-title">Return metrics</div>
+    <div class="cards">
+      <div class="card accent"><div class="card-label">Total investment</div><div class="card-value" id="m_totInv">—</div><div class="card-sub">acq. + CAPEX</div></div>
+      <div class="card accent"><div class="card-label">EBITDA / ha (olive)</div><div class="card-value" id="m_ebitdaHa">—</div><div class="card-sub" id="m_oliveHaSub">—</div></div>
+      <div class="card accent"><div class="card-label">CAPEX / ha converted</div><div class="card-value" id="m_cxHa">—</div><div class="card-sub" id="m_cxHaSub">—</div></div>
+      <div class="card accent"><div class="card-label">Unlevered EBITDA yield</div><div class="card-value" id="m_unlevYld">—</div><div class="card-sub">EBITDA / total inv.</div></div>
+      <div class="card accent"><div class="card-label">Levered FCF yield</div><div class="card-value" id="m_levYld">—</div><div class="card-sub">FCF / equity</div></div>
+      <div class="card accent"><div class="card-label">DSCR (steady state)</div><div class="card-value" id="m_dscr">—</div><div class="card-sub">EBITDA / total P&amp;I</div></div>
+      <div class="card accent"><div class="card-label">Interest cover</div><div class="card-value" id="m_icr">—</div><div class="card-sub">EBITDA / interest</div></div>
+      <div class="card accent"><div class="card-label">Equity payback</div><div class="card-value" id="m_eqPb">—</div><div class="card-sub">equity / FCF (yrs)</div></div>
+    </div>
+    <div class="cards" style="margin-top:10px;">
+      <div class="card blue"><div class="card-label">Project IRR (5yr exit)</div><div class="card-value" id="m_projIRR5">—</div><div class="card-sub">unlevered + TV at Yr5</div></div>
+      <div class="card blue"><div class="card-label">Equity IRR (5yr exit)</div><div class="card-value" id="m_eqIRR5">—</div><div class="card-sub">levered + residual eq.</div></div>
+      <div class="card blue"><div class="card-label">Project IRR (10yr exit)</div><div class="card-value" id="m_projIRR10">—</div><div class="card-sub">unlevered + TV at Yr10</div></div>
+      <div class="card blue"><div class="card-label">Equity IRR (10yr exit)</div><div class="card-value" id="m_eqIRR10">—</div><div class="card-sub">levered + residual eq.</div></div>
+    </div>
+    <div class="cards" style="margin-top:10px;">
+      <div class="card accent"><div class="card-label">Exit EBITDA (TV) @ 5yr</div><div class="card-value" id="m_tv5">—</div><div class="card-sub">EBITDA × multiple</div></div>
+      <div class="card accent"><div class="card-label">Residual debt @ 5yr</div><div class="card-value" id="m_resDebt5">—</div><div class="card-sub">Fac A + Fac B balance</div></div>
+      <div class="card accent"><div class="card-label">Equity value @ 5yr exit</div><div class="card-value" id="m_eqExit5">—</div><div class="card-sub">TV − debt</div></div>
+      <div class="card accent"><div class="card-label">Land value @ 5yr</div><div class="card-value" id="m_landVal5">—</div><div class="card-sub">with appreciation</div></div>
+      <div class="card accent"><div class="card-label">Exit EBITDA (TV) @ 10yr</div><div class="card-value" id="m_tv10">—</div><div class="card-sub">EBITDA × multiple</div></div>
+      <div class="card accent"><div class="card-label">Residual debt @ 10yr</div><div class="card-value" id="m_resDebt10">—</div><div class="card-sub">Fac A + Fac B balance</div></div>
+      <div class="card accent"><div class="card-label">Equity value @ 10yr exit</div><div class="card-value" id="m_eqExit10">—</div><div class="card-sub">TV − debt</div></div>
+      <div class="card accent"><div class="card-label">Land value @ 10yr</div><div class="card-value" id="m_landVal10">—</div><div class="card-sub">with appreciation</div></div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="info" style="margin-top:0;">
+    <strong>IRR methodology:</strong> Both 5yr and 10yr exits shown. Project IRR = unlevered CFs + terminal value (EBITDA × multiple) at exit year vs total investment at Yr0. Equity IRR = levered CFs + residual equity (TV − debt balance) at exit year vs equity deployed. ★ marks exit years in cashflow table.
+    <strong>Scenario A:</strong> Existing olive fully productive from Yr1 (mature estate). <strong>Scenario B:</strong> Existing olive at 100% from Yr1; new olive groves ramp: Yr1=0%, Yr2=10%, Yr3=30%, Yr4=70%, Yr5+=100%.
+  </div>
+
+  <!-- SENSITIVITY ANALYSIS -->
+  <div class="section">
+    <div class="section-title">Sensitivity analysis — olive price (€0.50 → €2.00/kg) | all other assumptions held constant</div>
+    <div class="info">Table updates automatically with all current slider settings. Highlighted row = current olive price.</div>
+    <div class="tbl-wrap" style="margin-top:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">Olive price (€/kg)</th>
+            <th>Steady EBITDA</th>
+            <th>EBITDA / ha</th>
+            <th>DSCR</th>
+            <th>Proj IRR 5yr</th>
+            <th>Eq IRR 5yr</th>
+            <th>Proj IRR 10yr</th>
+            <th>Eq IRR 10yr</th>
+          </tr>
+        </thead>
+        <tbody id="sensBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">El Mesto Acquisition Model &mdash; Generated April 2026 &mdash; All figures are estimates based on dossier data and benchmarks. Not investment advice.</div>
+</div>
+
+<script>
+// ── FIXED LAND AREAS (from dossier) ──────────────────────────────────────────
+const SHD_ARB   = 335.68;   // SHD Arbequina (all 3 blocks)
+const INT_PIC   = 141.79;   // Intensive irrigated Picual
+const TRAD_PIC  = 610.29;   // Traditional dryland Picual
+const ARABLE    = 267.59;   // Arable / cereal (non-olive)
+const DEHESA    = 350.57;   // Dehesa / scrubland (non-olive)
+const CONV_HA   = ARABLE + DEHESA;  // 618.16 ha to convert in Sc. B
+const TOTAL_HA  = 1705.94;
+const EXIST_OLI = SHD_ARB + INT_PIC + TRAD_PIC; // 1087.76 ha
+const CONT      = 0.10;     // CAPEX contingency
+
+// ramp for NEW planting only (Sc. B)
+const RAMP_NEW = {0:0, 1:0, 2:0.10, 3:0.30, 4:0.70, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1};
+// existing olive: fully productive from Yr 1
+const RAMP_EX  = {0:0, 1:1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:1, 8:1, 9:1, 10:1};
+
+const YEAR_NOTES = {
+  0:'Purchase + CAPEX drawdown',
+  1:'Full prod. (existing) | New planting Yr1 (0%)',
+  2:'New planting ramp ~10%',
+  3:'New planting ramp ~30%',
+  4:'New planting ramp ~70%',
+  5:'Full production — all blocks',
+  6:'Full production',7:'Full production',8:'Full production',9:'Full production',
+  10:'Exit year'
+};
+const YEAR_NOTES_A = {
+  0:'Purchase',
+  1:'Full production — all existing blocks',
+  2:'Full production',3:'Full production',4:'Full production',5:'Full production ★',
+  6:'Full production',7:'Full production',8:'Full production',9:'Full production',
+  10:'Full production ★'
+};
+
+let scenario = 'current'; // 'current' or 'redo'
+
+function setScenario(sc) {
+  scenario = sc;
+  document.getElementById('btnCurrent').classList.toggle('active', sc==='current');
+  document.getElementById('btnRedo').classList.toggle('active', sc==='redo');
+  const infoEl = document.getElementById('scenInfo');
+  if(sc==='current'){
+    infoEl.innerHTML = '<strong>Scenario A — Current State.</strong> Revenue modelled on existing olive blocks only: SHD Arbequina (335.68 ha), Intensive Picual irrigated (141.79 ha), Traditional Picual dryland (610.29 ha). Non-olive land (arable 267.59 ha, dehesa/scrubland 350.57 ha) retained as-is. No PAC subsidy.';
+    document.getElementById('rampNote').innerHTML = '<strong>Ramp:</strong> Existing blocks fully mature — 100% production from Yr1. ★ marks exit years.';
+    document.getElementById('plTitle').textContent = 'Steady-state P&L (Year 1+)';
+  } else {
+    infoEl.innerHTML = '<strong>Scenario B — Full Redevelopment.</strong> All 618.16 ha non-olive land converted to new olive groves. Existing olive retained at 100%. CAPEX applied to conversion area only. Yield and cost per hectare for the new groves are adjustable — use the sliders to model different planting approaches. 10% contingency included.';
+    document.getElementById('rampNote').innerHTML = '<strong>Ramp (existing olive):</strong> 100% from Yr1. <strong>New olive groves ramp:</strong> Yr1=0%, Yr2=10%, Yr3=30%, Yr4=70%, Yr5+=100%. ★ marks exit years.';
+    document.getElementById('plTitle').textContent = 'Steady-state P&L (Year 5+, fully ramped)';
+  }
+  calc(); calcSens();
+}
+
+function fmt(n){ if(typeof n!=='number'||isNaN(n))return'—'; const a=Math.abs(n); const s=Math.round(a).toLocaleString(); return(n<0?'(€':'€')+s+(n<0?')':''); }
+function fmtP(n){ return isNaN(n)||!isFinite(n)?'—':(Math.round(n*10)/10).toFixed(1)+'%'; }
+function fmtX(n){ return isNaN(n)||!isFinite(n)?'n/a':(Math.round(n*100)/100).toFixed(2)+'×'; }
+function fmtYr(n){ return isNaN(n)||!isFinite(n)||n>100?'n/a':Math.round(n*10)/10+' yrs'; }
+
+function annuity(pv, r, n){ if(r===0)return pv/n; return pv*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1); }
+function loanBal(pv, r, pni, yrsAmort){
+  if(yrsAmort<=0)return pv;
+  let bal=pv;
+  for(let i=0;i<yrsAmort;i++){ bal=bal*(1+r)-pni; }
+  return Math.max(0,bal);
+}
+function irrCalc(cfs){
+  // Newton-Raphson IRR
+  let r=0.10;
+  for(let iter=0;iter<200;iter++){
+    let npv=0,dnpv=0;
+    for(let t=0;t<cfs.length;t++){
+      npv+=cfs[t]/Math.pow(1+r,t);
+      dnpv-=t*cfs[t]/Math.pow(1+r,t+1);
+    }
+    const rn=r-npv/dnpv;
+    if(Math.abs(rn-r)<1e-7){return rn;}
+    r=rn;
+    if(r<-0.999)return NaN;
+  }
+  return NaN;
+}
+
+function getVals(){
+  const g=id=>parseFloat(document.getElementById(id).value);
+  return {
+    pph:g('pph'), cxPha:g('cxPha'),
+    shdY:g('shdY'), intY:g('intY'), tradY:g('tradY'), newY:g('newY'), op:g('op'),
+    ocShd:g('ocShd'), ocInt:g('ocInt'), ocTrad:g('ocTrad'), ocNew:g('ocNew'),
+    staff:g('staff'), exitM:g('exitM'), landA:g('landA')/100,
+    ltvA:g('ltvA')/100, rateA:g('rateA')/100, termA:g('termA'), graceA:g('graceA'),
+    ltvB:g('ltvB')/100, rateB:g('rateB')/100, termB:g('termB'), graceB:g('graceB')
+  };
+}
+
+function updateSliderDisplays(v){
+  document.getElementById('pphO').textContent='€'+v.pph.toLocaleString();
+  document.getElementById('cxPhaO').textContent='€'+v.cxPha.toLocaleString();
+  document.getElementById('shdYO').textContent=v.shdY.toLocaleString()+' kg';
+  document.getElementById('intYO').textContent=v.intY.toLocaleString()+' kg';
+  document.getElementById('tradYO').textContent=v.tradY.toLocaleString()+' kg';
+  document.getElementById('newYO').textContent=v.newY.toLocaleString()+' kg';
+  document.getElementById('opO').textContent='€'+v.op.toFixed(2);
+  document.getElementById('ocShdO').textContent='€'+Math.round(v.ocShd).toLocaleString();
+  document.getElementById('ocIntO').textContent='€'+Math.round(v.ocInt).toLocaleString();
+  document.getElementById('ocTradO').textContent='€'+Math.round(v.ocTrad).toLocaleString();
+  document.getElementById('ocNewO').textContent='€'+Math.round(v.ocNew).toLocaleString();
+  document.getElementById('staffO').textContent='€'+Math.round(v.staff).toLocaleString();
+  document.getElementById('exitMO').textContent=v.exitM+'×';
+  document.getElementById('landAO').textContent=(v.landA*100).toFixed(1)+'%';
+  document.getElementById('ltvAO').textContent=Math.round(v.ltvA*100)+'%';
+  document.getElementById('rateAO').textContent=(v.rateA*100).toFixed(2)+'%';
+  document.getElementById('termAO').textContent=v.termA+' yrs';
+  document.getElementById('graceAO').textContent=v.graceA+' yrs';
+  document.getElementById('ltvBO').textContent=Math.round(v.ltvB*100)+'%';
+  document.getElementById('rateBO').textContent=(v.rateB*100).toFixed(2)+'%';
+  document.getElementById('termBO').textContent=v.termB+' yrs';
+  document.getElementById('graceBO').textContent=v.graceB+' yrs';
+}
+
+function calc(){
+  const v = getVals();
+  updateSliderDisplays(v);
+
+  const isRedo = (scenario === 'redo');
+
+  // ── ACQUISITION & CAPEX ────────────────────────────────────────────────────
+  const acq = TOTAL_HA * v.pph;
+  const convArea = isRedo ? CONV_HA : 0;
+  const cx = isRedo ? CONV_HA * v.cxPha * (1 + CONT) : 0;
+  const totInv = acq + cx;
+
+  // ── DEBT ──────────────────────────────────────────────────────────────────
+  const lA = acq * v.ltvA, eA = acq * (1 - v.ltvA);
+  const lB = cx  * v.ltvB, eB = cx  * (1 - v.ltvB);
+  const pniA = annuity(lA, v.rateA, v.termA - v.graceA);
+  const pniB = lB > 0 ? annuity(lB, v.rateB, v.termB - v.graceB) : 0;
+  const intAg = lA * v.rateA, intBg = lB * v.rateB;
+  const totEq = eA + eB, totDebt = lA + lB;
+  const ltvBlend = totDebt / totInv;
+  const gear = totDebt / totEq;
+
+  // ── STEADY-STATE REVENUE ──────────────────────────────────────────────────
+  const revShd  = SHD_ARB  * v.shdY  * v.op;
+  const revInt  = INT_PIC  * v.intY  * v.op;
+  const revTrad = TRAD_PIC * v.tradY * v.op;
+  const revNew  = isRedo ? CONV_HA * v.newY * v.op : 0;
+  const gross   = revShd + revInt + revTrad + revNew;
+
+  const opShd  = SHD_ARB  * v.ocShd;
+  const opInt  = INT_PIC  * v.ocInt;
+  const opTrad = TRAD_PIC * v.ocTrad;
+  const opNew  = isRedo ? CONV_HA * v.ocNew : 0;
+  const totOp  = opShd + opInt + opTrad + opNew + v.staff;
+  const ebitda = gross - totOp;
+
+  const totPni  = pniA + pniB;
+  const intSS   = lA * v.rateA + lB * v.rateB;
+  const fcfSS   = ebitda - totPni;
+  const oliveHa = isRedo ? TOTAL_HA : EXIST_OLI;
+
+  // ── UPDATE DEBT SUMMARY ────────────────────────────────────────────────────
+  document.getElementById('s_acq').textContent    = fmt(acq);
+  document.getElementById('s_lA').textContent     = fmt(lA);
+  document.getElementById('s_eA').textContent     = fmt(eA);
+  document.getElementById('s_intAg').textContent  = fmt(intAg);
+  document.getElementById('s_pniA').textContent   = fmt(pniA);
+  document.getElementById('s_cx').textContent     = isRedo ? fmt(cx) : '—  (Sc. A: no CAPEX)';
+  document.getElementById('s_lB').textContent     = isRedo ? fmt(lB) : '—';
+  document.getElementById('s_eB').textContent     = isRedo ? fmt(eB) : '—';
+  document.getElementById('s_intBg').textContent  = isRedo ? fmt(intBg) : '—';
+  document.getElementById('s_pniB').textContent   = isRedo ? fmt(pniB) : '—';
+  document.getElementById('s_totInv').textContent = fmt(totInv);
+  document.getElementById('s_totDebt').textContent= fmt(totDebt);
+  document.getElementById('s_totEq').textContent  = fmt(totEq);
+  document.getElementById('s_ltvBlend').textContent= fmtP(ltvBlend*100);
+  document.getElementById('s_gear').textContent   = fmtX(gear);
+
+  // ── STEADY-STATE P&L TABLE ─────────────────────────────────────────────────
+  const plBody = document.getElementById('plBody');
+  plBody.innerHTML = '';
+  const plRows = [
+    {label:'SHD Arbequina revenue (335.68 ha)', v:revShd},
+    {label:'Intensive Picual revenue (141.79 ha)', v:revInt},
+    {label:'Traditional Picual revenue (610.29 ha)', v:revTrad},
+    ...(isRedo ? [{label:'New olive groves revenue (618.16 ha)', v:revNew}] : []),
+    {label:'Total gross revenue', v:gross, cls:'tot'},
+    {label:'SHD Arbequina op. costs', v:-opShd},
+    {label:'Intensive Picual op. costs', v:-opInt},
+    {label:'Traditional Picual op. costs', v:-opTrad},
+    ...(isRedo ? [{label:'New olive groves op. costs', v:-opNew}] : []),
+    {label:'Farm staff & overhead', v:-v.staff},
+    {label:'Total operating costs', v:-totOp, cls:'tot'},
+    {label:'EBITDA', v:ebitda, cls:'ebt'},
+    {label:'Facility A P&I (p.a.)', v:-pniA},
+    ...(isRedo ? [{label:'Facility B P&I (p.a.)', v:-pniB}] : []),
+    {label:'Free cashflow (post-debt service)', v:fcfSS, cls:'fcf'},
+  ];
+  plRows.forEach(row=>{
+    const tr=document.createElement('tr');
+    if(row.cls)tr.className=row.cls;
+    const neg=row.v<0;
+    tr.innerHTML=`<td>${row.label}</td><td class="${neg?'neg':'pos'}">${fmt(row.v)}</td>`;
+    plBody.appendChild(tr);
+  });
+
+  // ── CASHFLOW TABLE ─────────────────────────────────────────────────────────
+  const projCFs5=[-totInv], eqCFs5=[-totEq];
+  const projCFs10=[-totInv], eqCFs10=[-totEq];
+  const cfBody = document.getElementById('cfBody');
+  cfBody.innerHTML = '';
+  let cumFCF = 0;
+
+  for(let yr=0; yr<=10; yr++){
+    // Existing olive: 100% from Yr1 always
+    const rEx = yr===0 ? 0 : 1;
+    // New olive groves: ramp only in Sc. B
+    const rNew = isRedo ? (RAMP_NEW[yr]||0) : 0;
+
+    const revEx_yr  = rEx  * (revShd + revInt + revTrad);
+    const revNew_yr = rNew * revNew;
+    const opEx_yr   = rEx  * (opShd + opInt + opTrad);
+    const opNew_yr  = rNew * opNew;
+    const staffYr   = yr===0 ? 0 : v.staff;
+    const eb = yr===0 ? 0 : (revEx_yr + revNew_yr) - (opEx_yr + opNew_yr) - staffYr;
+
+    const inGA = yr>0 && yr<=v.graceA;
+    const inGB = isRedo && yr>0 && yr<=v.graceB;
+    const dsA  = yr===0 ? 0 : (inGA ? intAg : pniA);
+    const dsB  = yr===0 ? 0 : (isRedo ? (inGB ? intBg : pniB) : 0);
+    const tDS  = dsA + dsB;
+    const fcf  = yr===0 ? 0 : eb - tDS;
+    if(yr>0) cumFCF += fcf;
+
+    const amA = Math.max(0, yr - v.graceA);
+    const amB = isRedo ? Math.max(0, yr - v.graceB) : 0;
+    const bA  = loanBal(lA, v.rateA, pniA, amA);
+    const bB  = isRedo ? loanBal(lB, v.rateB, pniB, amB) : 0;
+
+    if(yr>0 && yr<=5){ let pCF=eb, eCF=fcf; if(yr===5){const tv5=ebitda*v.exitM; pCF=eb+tv5; eCF=fcf+(tv5-bA-bB);} projCFs5.push(pCF); eqCFs5.push(eCF); }
+    if(yr>0 && yr<=10){ let pCF=eb, eCF=fcf; if(yr===10){const tv10=ebitda*v.exitM; pCF=eb+tv10; eCF=fcf+(tv10-bA-bB);} projCFs10.push(pCF); eqCFs10.push(eCF); }
+
+    const tr = document.createElement('tr');
+    const isKey = yr===0||yr===5||yr===10;
+    if(isKey) tr.className='hi';
+    const yrLabel = yr===0 ? 'Yr 0 (Q3 2026)' : `Yr ${yr} (${2026+yr})`;
+    const noteMap = isRedo ? YEAR_NOTES : YEAR_NOTES_A;
+    const note = noteMap[yr]||'';
+    const dsALabel = (yr===0||inGA) ? '(grace)' : '(amort)';
+    const dsBLabel = (yr===0||inGB) ? '(grace)' : '(amort)';
+    const exitFlag = yr===5?' ★ 5yr':yr===10?' ★ 10yr':'';
+    tr.innerHTML=`
+      <td>${yrLabel}${exitFlag}</td>
+      <td style="text-align:left;font-size:10px;color:#888;">${note}</td>
+      <td>${yr===0?'—':fmt(eb)}</td>
+      <td style="color:#c07020;">${yr===0?'—':fmt(-dsA)+' <span style="font-size:9px;color:#aaa;">'+(yr>0?dsALabel:'')+'</span>'}</td>
+      <td style="color:#c07020;">${yr===0?'—':(isRedo?fmt(-dsB)+' <span style="font-size:9px;color:#aaa;">'+(yr>0?dsBLabel:'')+'</span>':'—')}</td>
+      <td style="color:#c07020;font-weight:600;">${yr===0?'—':fmt(-tDS)}</td>
+      <td class="${fcf<0?'neg':'pos'}" style="font-weight:600;">${yr===0?'—':fmt(fcf)}</td>
+      <td class="${cumFCF<0?'neg':'pos'}">${yr===0?'—':fmt(cumFCF)}</td>`;
+    cfBody.appendChild(tr);
+  }
+
+  // ── IRR ────────────────────────────────────────────────────────────────────
+  const pIRR5  = irrCalc(projCFs5),  eIRR5  = irrCalc(eqCFs5);
+  const pIRR10 = irrCalc(projCFs10), eIRR10 = irrCalc(eqCFs10);
+  const tv5    = ebitda * v.exitM;
+  const tv10   = ebitda * v.exitM;
+  const resD5  = loanBal(lA,v.rateA,pniA,Math.max(0,5-v.graceA)) + (isRedo?loanBal(lB,v.rateB,pniB,Math.max(0,5-v.graceB)):0);
+  const resD10 = loanBal(lA,v.rateA,pniA,Math.max(0,10-v.graceA))+ (isRedo?loanBal(lB,v.rateB,pniB,Math.max(0,10-v.graceB)):0);
+  const eqEx5  = tv5  - resD5;
+  const eqEx10 = tv10 - resD10;
+  const lv5    = acq * Math.pow(1+v.landA, 5);
+  const lv10   = acq * Math.pow(1+v.landA, 10);
+
+  document.getElementById('m_totInv').textContent     = fmt(totInv);
+  document.getElementById('m_ebitdaHa').textContent   = '€'+Math.round(ebitda/oliveHa).toLocaleString()+'/ha';
+  document.getElementById('m_oliveHaSub').textContent = oliveHa.toLocaleString()+' ha olive';
+  document.getElementById('m_cxHa').textContent       = isRedo ? '€'+Math.round(cx/CONV_HA).toLocaleString()+'/ha' : '— (no conversion)';
+  document.getElementById('m_cxHaSub').textContent    = isRedo ? '618.16 ha converted' : 'Sc. A: no new planting';
+  document.getElementById('m_unlevYld').textContent   = fmtP(ebitda/totInv*100);
+  document.getElementById('m_levYld').textContent     = fmtP(fcfSS/totEq*100);
+  document.getElementById('m_dscr').textContent       = fmtX(totPni>0?ebitda/totPni:NaN);
+  document.getElementById('m_icr').textContent        = fmtX(intSS>0?ebitda/intSS:NaN);
+  document.getElementById('m_eqPb').textContent       = fmtYr(fcfSS>0?totEq/fcfSS:NaN);
+  document.getElementById('m_projIRR5').textContent   = fmtP(pIRR5*100);
+  document.getElementById('m_eqIRR5').textContent     = fmtP(eIRR5*100);
+  document.getElementById('m_projIRR10').textContent  = fmtP(pIRR10*100);
+  document.getElementById('m_eqIRR10').textContent    = fmtP(eIRR10*100);
+  document.getElementById('m_tv5').textContent        = fmt(tv5);
+  document.getElementById('m_resDebt5').textContent   = fmt(resD5);
+  document.getElementById('m_eqExit5').textContent    = fmt(eqEx5);
+  document.getElementById('m_landVal5').textContent   = fmt(lv5);
+  document.getElementById('m_tv10').textContent       = fmt(tv10);
+  document.getElementById('m_resDebt10').textContent  = fmt(resD10);
+  document.getElementById('m_eqExit10').textContent   = fmt(eqEx10);
+  document.getElementById('m_landVal10').textContent  = fmt(lv10);
+
+  // ── VERDICT ────────────────────────────────────────────────────────────────
+  const vEl = document.getElementById('verdict');
+  const dscr = totPni > 0 ? ebitda/totPni : Infinity;
+  const p5 = pIRR5*100, e5 = eIRR5*100, p10 = pIRR10*100, e10 = eIRR10*100;
+  if(ebitda<=0){
+    vEl.className='verdict stop';
+    vEl.textContent='Negative EBITDA — debt cannot be serviced at these assumptions.';
+  } else if(dscr<1.0){
+    vEl.className='verdict stop';
+    vEl.textContent=`DSCR ${fmtX(dscr)} — EBITDA does not cover full debt service. 5yr: Proj ${fmtP(p5)} / Eq ${fmtP(e5)} | 10yr: Proj ${fmtP(p10)} / Eq ${fmtP(e10)}.`;
+  } else if(dscr<1.25){
+    vEl.className='verdict caution';
+    vEl.textContent=`DSCR ${fmtX(dscr)} is thin (banks typically require ~1.25×). 5yr IRR: Proj ${fmtP(p5)} / Eq ${fmtP(e5)} | 10yr: Proj ${fmtP(p10)} / Eq ${fmtP(e10)}.`;
+  } else if(p5>=10 && e5>=12){
+    vEl.className='verdict go';
+    vEl.textContent=`5yr: Proj IRR ${fmtP(p5)} / Eq IRR ${fmtP(e5)} | 10yr: Proj IRR ${fmtP(p10)} / Eq IRR ${fmtP(e10)} | DSCR ${fmtX(dscr)}. Strong returns — leverage is working.`;
+  } else if(p5>=7 || p10>=7){
+    vEl.className='verdict go';
+    vEl.textContent=`5yr: Proj IRR ${fmtP(p5)} / Eq IRR ${fmtP(e5)} | 10yr: Proj IRR ${fmtP(p10)} / Eq IRR ${fmtP(e10)} | DSCR ${fmtX(dscr)}. Acceptable returns.`;
+  } else {
+    vEl.className='verdict caution';
+    vEl.textContent=`5yr: Proj IRR ${fmtP(p5)} / Eq IRR ${fmtP(e5)} | 10yr: Proj IRR ${fmtP(p10)} / Eq IRR ${fmtP(e10)} | DSCR ${fmtX(dscr)}. Modest returns — sensitive to olive price and exit timing.`;
+  }
+}
+
+['pph','cxPha','shdY','intY','tradY','newY','op','ocShd','ocInt','ocTrad','ocNew','staff','exitM','landA',
+ 'ltvA','rateA','termA','graceA','ltvB','rateB','termB','graceB'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ calc(); calcSens(); });
+});
+
+function calcSens() {
+  const v = getVals();
+  const isRedo = (scenario === 'redo');
+  const PRICES = [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20, 1.30, 1.40, 1.50, 1.60, 1.70, 1.80, 1.90, 2.00];
+
+  // Rebuild debt from current sliders (same for all price rows)
+  const acq  = TOTAL_HA * v.pph;
+  const cx   = isRedo ? CONV_HA * v.cxPha * (1 + CONT) : 0;
+  const totInv = acq + cx;
+  const lA   = acq * v.ltvA, eA = acq * (1 - v.ltvA);
+  const lB   = cx  * v.ltvB, eB = cx  * (1 - v.ltvB);
+  const pniA = annuity(lA, v.rateA, v.termA - v.graceA);
+  const pniB = lB > 0 ? annuity(lB, v.rateB, v.termB - v.graceB) : 0;
+  const totEq  = eA + eB;
+  const totPni = pniA + pniB;
+  const oliveHa = isRedo ? TOTAL_HA : EXIST_OLI;
+
+  const resD5  = loanBal(lA,v.rateA,pniA,Math.max(0,5-v.graceA))  + (isRedo?loanBal(lB,v.rateB,pniB,Math.max(0,5-v.graceB)):0);
+  const resD10 = loanBal(lA,v.rateA,pniA,Math.max(0,10-v.graceA)) + (isRedo?loanBal(lB,v.rateB,pniB,Math.max(0,10-v.graceB)):0);
+
+  const sensBody = document.getElementById('sensBody');
+  sensBody.innerHTML = '';
+
+  PRICES.forEach(price => {
+    // Steady-state revenue at this price
+    const rShd  = SHD_ARB  * v.shdY  * price;
+    const rInt  = INT_PIC  * v.intY  * price;
+    const rTrad = TRAD_PIC * v.tradY * price;
+    const rNew  = isRedo ? CONV_HA * v.newY * price : 0;
+    const gross = rShd + rInt + rTrad + rNew;
+    const opShd  = SHD_ARB  * v.ocShd;
+    const opInt  = INT_PIC  * v.ocInt;
+    const opTrad = TRAD_PIC * v.ocTrad;
+    const opNew  = isRedo ? CONV_HA * v.ocNew : 0;
+    const totOp  = opShd + opInt + opTrad + opNew + v.staff;
+    const ebitda = gross - totOp;
+    const fcfSS  = ebitda - totPni;
+    const dscr   = totPni > 0 ? ebitda / totPni : Infinity;
+
+    // IRR cashflows
+    const pCFs5 = [-totInv], eCFs5 = [-totEq];
+    const pCFs10= [-totInv], eCFs10= [-totEq];
+    for(let yr=1; yr<=10; yr++){
+      const rEx  = 1;
+      const rNew2= isRedo ? (RAMP_NEW[yr]||0) : 0;
+      const revEx_yr  = rEx   * (rShd + rInt + rTrad);
+      const revNew_yr = rNew2 * rNew;
+      const opEx_yr   = rEx   * (opShd + opInt + opTrad);
+      const opNew_yr  = rNew2 * opNew;
+      const eb = (revEx_yr + revNew_yr) - (opEx_yr + opNew_yr) - v.staff;
+      const inGA = yr <= v.graceA;
+      const inGB = isRedo && yr <= v.graceB;
+      const dsA  = inGA ? lA * v.rateA : pniA;
+      const dsB  = isRedo ? (inGB ? lB * v.rateB : pniB) : 0;
+      const fcf  = eb - dsA - dsB;
+      const amA  = Math.max(0, yr - v.graceA);
+      const amB  = isRedo ? Math.max(0, yr - v.graceB) : 0;
+      const bA   = loanBal(lA, v.rateA, pniA, amA);
+      const bB   = isRedo ? loanBal(lB, v.rateB, pniB, amB) : 0;
+      if(yr<=5){
+        let pCF=eb, eCF=fcf;
+        if(yr===5){const tv=ebitda*v.exitM; pCF=eb+tv; eCF=fcf+(tv-bA-bB);}
+        pCFs5.push(pCF); eCFs5.push(eCF);
+      }
+      let pCF=eb, eCF=fcf;
+      if(yr===10){const tv=ebitda*v.exitM; pCF=eb+tv; eCF=fcf+(tv-bA-bB);}
+      pCFs10.push(pCF); eCFs10.push(eCF);
+    }
+    const pI5  = irrCalc(pCFs5)  * 100;
+    const eI5  = irrCalc(eCFs5)  * 100;
+    const pI10 = irrCalc(pCFs10) * 100;
+    const eI10 = irrCalc(eCFs10) * 100;
+
+    // Colour coding
+    const isCurrent = Math.abs(price - v.op) < 0.001;
+    const dscrOk   = dscr >= 1.25;
+    const dscrWarn = dscr >= 1.0 && dscr < 1.25;
+
+    function irrColor(val) {
+      if(isNaN(val)||!isFinite(val)) return '#888';
+      if(val >= 12) return '#27ae60';
+      if(val >= 7)  return '#7f5000';
+      return '#c0392b';
+    }
+    function ebitdaColor(val) {
+      if(val > 0) return '#27ae60';
+      return '#c0392b';
+    }
+
+    const tr = document.createElement('tr');
+    if(isCurrent) {
+      tr.style.background = '#fff9c4';
+      tr.style.fontWeight = '700';
+      tr.style.outline = '2px solid #e6c400';
+    } else if(ebitda <= 0) {
+      tr.style.background = '#fce4d6';
+    } else if(!dscrOk) {
+      tr.style.background = '#fff2cc';
+    }
+
+    const dscrDisp = totPni > 0 ? fmtX(dscr) : 'n/a';
+    const dscrCol  = dscrOk ? '#27ae60' : (dscrWarn ? '#7f5000' : '#c0392b');
+
+    tr.innerHTML = `
+      <td style="font-weight:600;">€${price.toFixed(2)}${isCurrent?' ◀ current':''}</td>
+      <td style="color:${ebitdaColor(ebitda)};font-weight:600;">${fmt(ebitda)}</td>
+      <td style="color:${ebitdaColor(ebitda)};">€${Math.round(ebitda/oliveHa).toLocaleString()}/ha</td>
+      <td style="color:${dscrCol};font-weight:600;">${dscrDisp}</td>
+      <td style="color:${irrColor(pI5)};">${fmtP(pI5)}</td>
+      <td style="color:${irrColor(eI5)};font-weight:600;">${fmtP(eI5)}</td>
+      <td style="color:${irrColor(pI10)};">${fmtP(pI10)}</td>
+      <td style="color:${irrColor(eI10)};font-weight:600;">${fmtP(eI10)}</td>`;
+    sensBody.appendChild(tr);
+  });
+}
+
+calc();
+calcSens();
+</script>
+</body>
+</html>

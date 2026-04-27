@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finca Mostazar — Acquisition Model</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #f5f5f3; line-height: 1.5; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .hdr { background: #1F4E79; color: #fff; border-radius: 10px; padding: 20px 24px 16px; margin-bottom: 24px; }
+  .hdr h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .hdr p  { font-size: 12px; opacity: .75; }
+
+  .scenario-bar { display:flex; gap:10px; margin-bottom:18px; }
+  .scen-btn { flex:1; padding:10px 16px; border-radius:7px; border:2px solid #ccc; background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#555; transition:all .15s; text-align:center; }
+  .scen-btn.active { background:#1F4E79; color:#fff; border-color:#1F4E79; }
+  .scen-btn:hover:not(.active) { border-color:#1F4E79; color:#1F4E79; }
+
+  .section { background: #fff; border: 1px solid #e0e0dc; border-radius: 8px; padding: 20px 22px; margin-bottom: 18px; }
+  .section-title { font-size: 10px; font-weight: 600; color: #888; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .slider-label { font-size: 12px; color: #555; min-width: 210px; }
+  .slider-row input[type=range] { flex: 1; accent-color: #1F4E79; height: 4px; cursor: pointer; }
+  .slider-val { font-size: 12px; font-weight: 600; color: #1a1a1a; min-width: 80px; text-align: right; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 4px; }
+  .card { background: #f5f5f3; border-radius: 6px; padding: 12px 14px; }
+  .card.accent { background: #fff; border: 1px solid #d0d9e3; }
+  .card.blue   { background: #deeaf1; border: 1.5px solid #1F4E79; }
+  .card.blue2  { background: #eef4fb; border: 1.5px solid #2E75B6; }
+  .card-label { font-size: 11px; color: #777; margin-bottom: 4px; }
+  .card-value { font-size: 20px; font-weight: 600; color: #1a1a1a; line-height: 1.2; }
+  .card-sub   { font-size: 10px; color: #999; margin-top: 3px; }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #eee; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; font-weight: 500; color: #444; }
+  th { background: #f0f0ee; color: #555; font-weight: 600; font-size: 11px; }
+  tr:hover td { background: #fafaf8; }
+  tr.sec td { background: #deeaf1; font-weight: 600; color: #1F4E79; font-size: 11px; letter-spacing:.04em; text-transform:uppercase; }
+  tr.tot td { background: #BDD7EE; font-weight: 700; }
+  tr.ebt td  { font-weight: 700; background: #e2efda; }
+  tr.fcf td  { font-weight: 700; background: #e2efda; }
+  tr.hi  td  { background: #f5f5f3; font-weight: 600; }
+  td.neg { color: #c0392b; }
+  td.pos { color: #27ae60; }
+  tr.sens-hi td { background:#deeaf1; font-weight:700; color:#1F4E79; }
+
+  .verdict { border-radius: 7px; padding: 12px 16px; font-size: 13px; font-weight: 500; margin-top: 14px; line-height: 1.5; }
+  .verdict.go     { background: #eaf3de; color: #27500a; border: 1px solid #b6d48a; }
+  .verdict.caution{ background: #fff2cc; color: #7f5000; border: 1px solid #e6c400; }
+  .verdict.stop   { background: #fce4d6; color: #843c0c; border: 1px solid #e09070; }
+
+  .info { background: #deeaf1; color: #0c447c; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin: 10px 0; border: 1px solid #b5d4f4; line-height: 1.6; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:720px){ .two-col { grid-template-columns: 1fr; } }
+
+  .fac-box { border: 1px solid #d0d9e3; border-radius: 7px; padding: 14px 16px; background: #fafcff; }
+  .fac-title { font-size: 11px; font-weight: 700; color: #1F4E79; letter-spacing:.05em; text-transform:uppercase; margin-bottom:10px; border-bottom:1px solid #d0d9e3; padding-bottom:6px; }
+  .fac-row { display:flex; justify-content:space-between; align-items:baseline; padding:4px 0; border-bottom:1px solid #f0f0ee; font-size:12px; }
+  .fac-row:last-child { border-bottom:none; }
+  .fac-row-label { color:#666; }
+  .fac-row-val   { font-weight:600; color:#1a1a1a; }
+
+  .scen-label { display:inline-block; font-size:11px; font-weight:700; padding:2px 10px; border-radius:4px; margin-bottom:12px; }
+  .scen-label.a { background:#deeaf1; color:#1F4E79; }
+  .scen-label.b { background:#1F4E79; color:#fff; }
+
+  .footer { text-align:center; font-size:11px; color:#aaa; margin-top:32px; }
+  hr { border:none; border-top:1px solid #e8e8e4; margin:6px 0 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <h1>Finca Mostazar — Acquisition Model</h1>
+    <p>Sabiote / Villacarrillo, Jaén &middot; Owner: Calancha S.A. &middot; 800 ha total &middot; Revenue on wholesale olive (€/kg) basis &middot; IRR at 5yr and 10yr exit</p>
+  </div>
+
+  <div class="scenario-bar">
+    <button class="scen-btn active" id="btnA" onclick="setScen('A')">
+      Scenario A &mdash; Current State<br><small style="font-weight:400;font-size:11px;">333 ha existing olive &middot; No CAPEX &middot; As-is operation</small>
+    </button>
+    <button class="scen-btn" id="btnB" onclick="setScen('B')">
+      Scenario B &mdash; SHD Redevelopment<br><small style="font-weight:400;font-size:11px;">527.9 ha converted &middot; SHD irrigated + dryland &middot; Full replanting</small>
+    </button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Land allocation</div>
+    <div id="landCards"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Assumptions — shared across both scenarios</div>
+    <div class="two-col">
+      <div>
+        <div class="slider-row"><span class="slider-label">Acquisition price (€/ha)</span><input type="range" min="5000" max="25000" step="500" value="14000" id="pph"><span class="slider-val" id="pphO">€14,000</span></div>
+        <div class="slider-row"><span class="slider-label">Wholesale olive price (€/kg)</span><input type="range" min="0.50" max="2.00" step="0.05" value="1.00" id="op"><span class="slider-val" id="opO">€1.00</span></div>
+        <div class="slider-row"><span class="slider-label">PAC subsidy (€/year)</span><input type="range" min="0" max="400000" step="5000" value="171000" id="pac"><span class="slider-val" id="pacO">€171,000</span></div>
+        <div class="slider-row"><span class="slider-label">Staff &amp; overhead (€/year)</span><input type="range" min="100000" max="500000" step="10000" value="240000" id="staff"><span class="slider-val" id="staffO">€240,000</span></div>
+        <div class="slider-row"><span class="slider-label">Exit EBITDA multiple (×)</span><input type="range" min="8" max="20" step="1" value="10" id="exitM"><span class="slider-val" id="exitMO">10×</span></div>
+        <div class="slider-row"><span class="slider-label">Land appreciation (% p.a.)</span><input type="range" min="0" max="5" step="0.5" value="1.5" id="landA"><span class="slider-val" id="landAO">1.5%</span></div>
+      </div>
+      <div>
+        <div class="slider-row"><span class="slider-label">LTV — Facility A (land)</span><input type="range" min="40" max="75" step="5" value="60" id="ltvA"><span class="slider-val" id="ltvAO">60%</span></div>
+        <div class="slider-row"><span class="slider-label">Rate — Facility A</span><input type="range" min="2.0" max="6.0" step="0.25" value="3.25" id="rateA"><span class="slider-val" id="rateAO">3.25%</span></div>
+        <div class="slider-row"><span class="slider-label">Term — Facility A (years)</span><input type="range" min="10" max="25" step="1" value="20" id="termA"><span class="slider-val" id="termAO">20 yrs</span></div>
+        <div class="slider-row"><span class="slider-label">Grace — Facility A (years)</span><input type="range" min="0" max="5" step="1" value="3" id="graceA"><span class="slider-val" id="graceAO">3 yrs</span></div>
+        <div class="slider-row"><span class="slider-label">LTV — Facility B (CAPEX)</span><input type="range" min="40" max="80" step="5" value="60" id="ltvB"><span class="slider-val" id="ltvBO">60%</span></div>
+        <div class="slider-row"><span class="slider-label">Rate — Facility B</span><input type="range" min="2.5" max="7.0" step="0.25" value="4.00" id="rateB"><span class="slider-val" id="rateBO">4.00%</span></div>
+        <div class="slider-row"><span class="slider-label">Term — Facility B (years)</span><input type="range" min="8" max="20" step="1" value="15" id="termB"><span class="slider-val" id="termBO">15 yrs</span></div>
+        <div class="slider-row"><span class="slider-label">Grace — Facility B (years)</span><input type="range" min="0" max="5" step="1" value="4" id="graceB"><span class="slider-val" id="graceBO">4 yrs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Scenario-specific yield &amp; cost assumptions</div>
+    <div id="scenSliders"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Debt structure</div>
+    <div class="two-col">
+      <div class="fac-box">
+        <div class="fac-title">Facility A — Land Acquisition</div>
+        <div class="fac-row"><span class="fac-row-label">Acquisition cost</span><span class="fac-row-val" id="s_acq">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Loan amount</span><span class="fac-row-val" id="s_lA">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Equity required</span><span class="fac-row-val" id="s_eA">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Interest during grace (p.a.)</span><span class="fac-row-val" id="s_intAg">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">P&amp;I post-grace (p.a.)</span><span class="fac-row-val" id="s_pniA">—</span></div>
+      </div>
+      <div class="fac-box">
+        <div class="fac-title">Facility B — CAPEX <span id="facBLabel" style="font-weight:400;font-size:10px;"></span></div>
+        <div class="fac-row"><span class="fac-row-label">CAPEX (incl. 10% cont.)</span><span class="fac-row-val" id="s_cx">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Loan amount</span><span class="fac-row-val" id="s_lB">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Equity required</span><span class="fac-row-val" id="s_eB">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">Interest during grace (p.a.)</span><span class="fac-row-val" id="s_intBg">—</span></div>
+        <div class="fac-row"><span class="fac-row-label">P&amp;I post-grace (p.a.)</span><span class="fac-row-val" id="s_pniB">—</span></div>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:12px;">
+      <div class="card accent"><div class="card-label">Total investment</div><div class="card-value" id="s_totInv">—</div><div class="card-sub">acq. + CAPEX</div></div>
+      <div class="card accent"><div class="card-label">Total debt</div><div class="card-value" id="s_totDebt">—</div><div class="card-sub">Fac A + Fac B</div></div>
+      <div class="card accent"><div class="card-label">Total equity deployed</div><div class="card-value" id="s_totEq">—</div><div class="card-sub">cash required</div></div>
+      <div class="card accent"><div class="card-label">Blended LTV</div><div class="card-value" id="s_ltvBlend">—</div><div class="card-sub">debt / total inv.</div></div>
+      <div class="card accent"><div class="card-label">Gearing (D/E)</div><div class="card-value" id="s_gear">—</div><div class="card-sub">total debt / equity</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Annual cashflow timeline — Q3 2026 to Year 10</div>
+    <div class="info" id="cfInfo">—</div>
+    <div class="tbl-wrap" style="margin-top:12px;">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;">Period</th><th>Note</th><th>EBITDA</th>
+          <th>Fac A svc</th><th>Fac B svc</th><th>Total svc</th><th>Free CF</th><th>Cum. FCF</th>
+        </tr></thead>
+        <tbody id="cfBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Steady-state P&amp;L</div>
+    <div class="tbl-wrap"><table><tbody id="plBody"></tbody></table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Return metrics</div>
+    <div class="cards">
+      <div class="card accent"><div class="card-label">Total investment</div><div class="card-value" id="m_totInv">—</div><div class="card-sub">acq. + CAPEX</div></div>
+      <div class="card accent"><div class="card-label">EBITDA / ha (olive)</div><div class="card-value" id="m_ebitdaHa">—</div><div class="card-sub" id="m_oliveHaSub">—</div></div>
+      <div class="card accent"><div class="card-label">Total CAPEX / ha</div><div class="card-value" id="m_cxHa">—</div><div class="card-sub" id="m_cxHaSub">—</div></div>
+      <div class="card accent"><div class="card-label">Unlevered EBITDA yield</div><div class="card-value" id="m_unlevYld">—</div><div class="card-sub">EBITDA / total inv.</div></div>
+      <div class="card accent"><div class="card-label">Levered FCF yield</div><div class="card-value" id="m_levYld">—</div><div class="card-sub">FCF / equity</div></div>
+      <div class="card accent"><div class="card-label">DSCR (steady state)</div><div class="card-value" id="m_dscr">—</div><div class="card-sub">target &gt;1.25×</div></div>
+      <div class="card accent"><div class="card-label">Interest cover</div><div class="card-value" id="m_icr">—</div><div class="card-sub">EBITDA / interest</div></div>
+      <div class="card accent"><div class="card-label">Equity payback</div><div class="card-value" id="m_eqPb">—</div><div class="card-sub">equity / FCF (yrs)</div></div>
+    </div>
+    <div class="cards" style="margin-top:10px;">
+      <div class="card blue"><div class="card-label">Project IRR (5yr exit)</div><div class="card-value" id="m_projIRR5">—</div><div class="card-sub">unlevered + TV at Yr5</div></div>
+      <div class="card blue"><div class="card-label">Equity IRR (5yr exit)</div><div class="card-value" id="m_eqIRR5">—</div><div class="card-sub">levered + residual eq. Yr5</div></div>
+      <div class="card accent"><div class="card-label">Terminal value (Yr5)</div><div class="card-value" id="m_tv5">—</div><div class="card-sub">EBITDA × multiple</div></div>
+      <div class="card accent"><div class="card-label">Residual debt (Yr5)</div><div class="card-value" id="m_resDebt5">—</div><div class="card-sub">outstanding balance</div></div>
+      <div class="card accent"><div class="card-label">Equity at exit (Yr5)</div><div class="card-value" id="m_eqExit5">—</div><div class="card-sub">TV − residual debt</div></div>
+      <div class="card accent"><div class="card-label">Land value (Yr5)</div><div class="card-value" id="m_landVal5">—</div><div class="card-sub">acq × (1+g)^5</div></div>
+    </div>
+    <div class="cards" style="margin-top:10px;">
+      <div class="card blue2"><div class="card-label">Project IRR (10yr exit)</div><div class="card-value" id="m_projIRR10">—</div><div class="card-sub">unlevered + TV at Yr10</div></div>
+      <div class="card blue2"><div class="card-label">Equity IRR (10yr exit)</div><div class="card-value" id="m_eqIRR10">—</div><div class="card-sub">levered + residual eq. Yr10</div></div>
+      <div class="card accent"><div class="card-label">Terminal value (Yr10)</div><div class="card-value" id="m_tv10">—</div><div class="card-sub">EBITDA × multiple</div></div>
+      <div class="card accent"><div class="card-label">Residual debt (Yr10)</div><div class="card-value" id="m_resDebt10">—</div><div class="card-sub">outstanding balance</div></div>
+      <div class="card accent"><div class="card-label">Equity at exit (Yr10)</div><div class="card-value" id="m_eqExit10">—</div><div class="card-sub">TV − residual debt</div></div>
+      <div class="card accent"><div class="card-label">Land value (Yr10)</div><div class="card-value" id="m_landVal10">—</div><div class="card-sub">acq × (1+g)^10</div></div>
+    </div>
+    <div id="verdict" class="verdict caution">—</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Sensitivity analysis — olive price €0.50 → €2.00/kg | all other assumptions held constant</div>
+    <div class="info">Table updates automatically. Highlighted row = current olive price. Facility B active in Scenario B only.</div>
+    <div class="tbl-wrap" style="margin-top:12px;">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;">Olive price (€/kg)</th>
+          <th>EBITDA (ss)</th><th>EBITDA / ha</th><th>DSCR</th>
+          <th>Proj IRR 5yr</th><th>Eq IRR 5yr</th><th>Proj IRR 10yr</th><th>Eq IRR 10yr</th>
+        </tr></thead>
+        <tbody id="sensBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="info" style="font-size:11px;">
+    <strong>Scenario A (current state):</strong> No CAPEX. Revenue from 272.27 ha irrigated + 61.35 ha dryland olive. Fully productive from Year 1. <strong>Scenario B (redevelopment):</strong> 527.9 ha converted to SHD. Ramp: Yr1=0%, Yr2=10%, Yr3=30%, Yr4=70%, Yr5+=100%. Traditional retained 102.9 ha: no ramp. <strong>IRR:</strong> Project IRR = unlevered CFs + EBITDA × exit multiple at exit year, against total investment. Equity IRR = levered CFs + (TV − residual debt) at exit year, against equity deployed. ★ marks exit years in cashflow table.
+  </div>
+
+  <div class="footer">Finca Mostazar Acquisition Model &mdash; Generated April 2026 &mdash; All figures are estimates based on dossier data and benchmarks. Not investment advice.</div>
+</div>
+
+<script>
+const TOTAL_HA=792;
+const A_IRR_HA=272.27,A_DRY_HA=61.35,A_OLIVE_HA=A_IRR_HA+A_DRY_HA;
+const B_SHD_I=127.9,B_SHD_D=400,B_TRAD=102.9;
+const B_CONV=B_SHD_I+B_SHD_D,B_OLIVE=B_SHD_I+B_SHD_D+B_TRAD;
+const CONT=0.10;
+const RAMP_A={0:0,1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1};
+const RAMP_B={0:0,1:0,2:0.10,3:0.30,4:0.70,5:1,6:1,7:1,8:1,9:1,10:1};
+const NOTES_A={0:'Purchase',1:'Full production',2:'Full production',3:'Full production',4:'Full production',5:'Full production',6:'Full production',7:'Full production',8:'Full production',9:'Full production',10:'Exit year'};
+const NOTES_B={0:'Purchase + CAPEX drawdown',1:'Transition (0%)',2:'First harvest ~10%',3:'Ramp ~30%',4:'Ramp ~70%',5:'Full production',6:'Full production',7:'Full production',8:'Full production',9:'Full production',10:'Exit year'};
+
+let scen='A';
+
+function fmt(n){if(typeof n!=='number'||isNaN(n))return'—';const a=Math.abs(n);return(n<0?'(€':'€')+Math.round(a).toLocaleString()+(n<0?')':'');}
+function fmtP(n){return isNaN(n)||!isFinite(n)?'—':(Math.round(n*10)/10).toFixed(1)+'%';}
+function fmtX(n){return isNaN(n)||!isFinite(n)?'n/a':(Math.round(n*100)/100).toFixed(2)+'x';}
+function fmtYr(n){return isNaN(n)||!isFinite(n)||n>100?'n/a':Math.round(n)+' yrs';}
+function annuity(P,r,n){if(n<=0)return 0;if(r===0)return P/n;return P*(r*(1+r)**n)/((1+r)**n-1);}
+function loanBal(P,r,pni,y){let b=P;for(let i=0;i<Math.floor(y);i++){b=b*(1+r)-pni;if(b<0)b=0;}return b;}
+function irrCalc(cfs,g=0.1){let r=g;for(let i=0;i<400;i++){const n=cfs.reduce((s,cf,j)=>s+cf/(1+r)**j,0);const d=cfs.reduce((s,cf,j)=>s-j*cf/(1+r)**(j+1),0);if(Math.abs(d)<1e-12)break;const nr=r-n/d;if(Math.abs(nr-r)<1e-9){r=nr;break;}r=nr;if(r<-0.999)r=-0.999;}return isFinite(r)&&Math.abs(r)<5?r:NaN;}
+
+function gv(id,def){const el=document.getElementById(id);return el?+el.value:def;}
+function getShared(){return{pph:gv('pph',14000),op:gv('op',1.00),pac:gv('pac',171000),staff:gv('staff',240000),exitM:gv('exitM',10),landA:gv('landA',1.5)/100,ltvA:gv('ltvA',60)/100,rateA:gv('rateA',3.25)/100,termA:gv('termA',20),graceA:gv('graceA',3),ltvB:gv('ltvB',60)/100,rateB:gv('rateB',4.00)/100,termB:gv('termB',15),graceB:gv('graceB',4)};}
+
+function buildLandCards(s){
+  document.getElementById('landCards').innerHTML=s==='A'?`<div class="cards">
+    <div class="card accent"><div class="card-label">Irrigated olive</div><div class="card-value">272.27 ha</div><div class="card-sub">Arbequina / Picual / Hojiblanca</div></div>
+    <div class="card accent"><div class="card-label">Dryland olive</div><div class="card-value">61.35 ha</div><div class="card-sub">Picual (1997 + 2018)</div></div>
+    <div class="card accent"><div class="card-label">Total olive area</div><div class="card-value">333.6 ha</div><div class="card-sub">existing plantings</div></div>
+    <div class="card accent"><div class="card-label">Arable / other</div><div class="card-value">~466 ha</div><div class="card-sub">cereals, legumes, non-productive</div></div>
+    <div class="card accent"><div class="card-label">Water</div><div class="card-value">290k m³/yr</div><div class="card-sub">CHG well + irrigation community</div></div>
+    <div class="card accent"><div class="card-label">CAP subsidy</div><div class="card-value">€171k/yr</div><div class="card-sub">base payment (adjustable)</div></div>
+  </div>`:`<div class="cards">
+    <div class="card accent"><div class="card-label">SHD irrigated (new)</div><div class="card-value">127.9 ha</div><div class="card-sub">1,666 trees/ha · Arbequina</div></div>
+    <div class="card accent"><div class="card-label">SHD dryland (new)</div><div class="card-value">400 ha</div><div class="card-sub">1,000 trees/ha</div></div>
+    <div class="card accent"><div class="card-label">Traditional retained</div><div class="card-value">102.9 ha</div><div class="card-sub">120 trees/ha · existing</div></div>
+    <div class="card accent"><div class="card-label">Total olive area</div><div class="card-value">630.8 ha</div><div class="card-sub">vs 333 ha current</div></div>
+    <div class="card accent"><div class="card-label">Conversion area</div><div class="card-value">527.9 ha</div><div class="card-sub">full replanting CAPEX</div></div>
+    <div class="card accent"><div class="card-label">Water</div><div class="card-value">290k m³/yr</div><div class="card-sub">CHG well + irrigation community</div></div>
+  </div>`;
+}
+
+function buildScenSliders(s){
+  const el=document.getElementById('scenSliders');
+  if(s==='A'){
+    el.innerHTML=`<div class="scen-label a">Scenario A — Current State</div>
+    <div class="two-col"><div>
+      <div class="slider-row"><span class="slider-label">Irrigated olive yield (kg/ha)</span><input type="range" min="1000" max="12000" step="100" value="5800" id="aIrrY"><span class="slider-val" id="aIrrYO">5,800 kg</span></div>
+      <div class="slider-row"><span class="slider-label">Dryland olive yield (kg/ha)</span><input type="range" min="200" max="4000" step="100" value="1900" id="aDryY"><span class="slider-val" id="aDryYO">1,900 kg</span></div>
+    </div><div>
+      <div class="slider-row"><span class="slider-label">Irrigated op. cost (€/ha)</span><input type="range" min="500" max="2500" step="50" value="1400" id="aOcI"><span class="slider-val" id="aOcIO">€1,400</span></div>
+      <div class="slider-row"><span class="slider-label">Dryland op. cost (€/ha)</span><input type="range" min="200" max="1200" step="50" value="490" id="aOcD"><span class="slider-val" id="aOcDO">€490</span></div>
+    </div></div>`;
+    ['aIrrY','aDryY','aOcI','aOcD'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+  } else {
+    el.innerHTML=`<div class="scen-label b">Scenario B — SHD Redevelopment</div>
+    <div class="two-col"><div>
+      <div class="slider-row"><span class="slider-label">SHD irrigated yield (kg/ha)</span><input type="range" min="3000" max="14000" step="250" value="9000" id="bIrrY"><span class="slider-val" id="bIrrYO">9,000 kg</span></div>
+      <div class="slider-row"><span class="slider-label">SHD dryland yield (kg/ha)</span><input type="range" min="500" max="6000" step="100" value="3500" id="bDryY"><span class="slider-val" id="bDryYO">3,500 kg</span></div>
+      <div class="slider-row"><span class="slider-label">Traditional retained yield (kg/ha)</span><input type="range" min="2000" max="9000" step="100" value="5800" id="bTradY"><span class="slider-val" id="bTradYO">5,800 kg</span></div>
+      <div class="slider-row"><span class="slider-label">CAPEX rate (€/ha converted)</span><input type="range" min="9000" max="13000" step="250" value="11000" id="bCx"><span class="slider-val" id="bCxO">€11,000</span></div>
+    </div><div>
+      <div class="slider-row"><span class="slider-label">SHD irrigated op. cost (€/ha)</span><input type="range" min="800" max="3000" step="50" value="1600" id="bOcI"><span class="slider-val" id="bOcIO">€1,600</span></div>
+      <div class="slider-row"><span class="slider-label">SHD dryland op. cost (€/ha)</span><input type="range" min="300" max="1500" step="50" value="750" id="bOcD"><span class="slider-val" id="bOcDO">€750</span></div>
+      <div class="slider-row"><span class="slider-label">Traditional op. cost (€/ha)</span><input type="range" min="500" max="2000" step="50" value="1200" id="bOcT"><span class="slider-val" id="bOcTO">€1,200</span></div>
+    </div></div>`;
+    ['bIrrY','bDryY','bTradY','bCx','bOcI','bOcD','bOcT'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+  }
+}
+
+function computeModel(s,op,sh){
+  const acq=TOTAL_HA*sh.pph;
+  let cx=0,ebitda,oliveHa,ramp,notes;
+  if(s==='A'){
+    const irrY=gv('aIrrY',5800),dryY=gv('aDryY',1900),ocI=gv('aOcI',1400),ocD=gv('aOcD',490);
+    const rev=A_IRR_HA*irrY*op+A_DRY_HA*dryY*op+sh.pac;
+    const cost=A_IRR_HA*ocI+A_DRY_HA*ocD+sh.staff;
+    ebitda=rev-cost;oliveHa=A_OLIVE_HA;cx=0;ramp=RAMP_A;notes=NOTES_A;
+  } else {
+    const irrY=gv('bIrrY',9000),dryY=gv('bDryY',3500),tradY=gv('bTradY',5800),cxPha=gv('bCx',11000);
+    const ocI=gv('bOcI',1600),ocD=gv('bOcD',750),ocT=gv('bOcT',1200);
+    cx=B_CONV*cxPha*(1+CONT);
+    const rev=B_SHD_I*irrY*op+B_SHD_D*dryY*op+B_TRAD*tradY*op+sh.pac;
+    const cost=B_SHD_I*ocI+B_SHD_D*ocD+B_TRAD*ocT+sh.staff;
+    ebitda=rev-cost;oliveHa=B_OLIVE;ramp=RAMP_B;notes=NOTES_B;
+  }
+  const totInv=acq+cx,lA=acq*sh.ltvA,eA=acq*(1-sh.ltvA),lB=cx*sh.ltvB,eB=cx*(1-sh.ltvB);
+  const pniA=annuity(lA,sh.rateA,sh.termA-sh.graceA),pniB=annuity(lB,sh.rateB,sh.termB-sh.graceB);
+  const intAg=lA*sh.rateA,intBg=lB*sh.rateB,totEq=eA+eB;
+  return{ebitda,totInv,totEq,pniA,pniB,intAg,intBg,lA,lB,acq,cx,oliveHa,ramp,notes,eA,eB};
+}
+
+function computeIRRs(m,sh){
+  const{ebitda,totInv,totEq,pniA,pniB,intAg,intBg,lA,lB,acq,ramp}=m;
+  const p5=[-totInv],e5=[-totEq],p10=[-totInv],e10=[-totEq];
+  for(let yr=1;yr<=10;yr++){
+    const r=ramp[yr]||0,eb=ebitda*r;
+    const inGA=yr<=sh.graceA,inGB=yr<=sh.graceB;
+    const dsA=inGA?intAg:pniA,dsB=inGB?intBg:pniB,fcf=eb-dsA-dsB;
+    const amA=Math.max(0,yr-sh.graceA),amB=Math.max(0,yr-sh.graceB);
+    const bA=loanBal(lA,sh.rateA,pniA,amA),bB=loanBal(lB,sh.rateB,pniB,amB);
+    if(yr<=5){let pc=eb,ec=fcf;if(yr===5){const tv=eb*sh.exitM;pc=eb+tv;ec=fcf+(tv-bA-bB);}p5.push(pc);e5.push(ec);}
+    {let pc=eb,ec=fcf;if(yr===10){const tv=eb*sh.exitM;pc=eb+tv;ec=fcf+(tv-bA-bB);}p10.push(pc);e10.push(ec);}
+  }
+  const b5A=loanBal(lA,sh.rateA,pniA,Math.max(0,5-sh.graceA))+loanBal(lB,sh.rateB,pniB,Math.max(0,5-sh.graceB));
+  const b10A=loanBal(lA,sh.rateA,pniA,Math.max(0,10-sh.graceA))+loanBal(lB,sh.rateB,pniB,Math.max(0,10-sh.graceB));
+  const tv=ebitda*sh.exitM;
+  return{p5:irrCalc(p5),e5:irrCalc(e5),p10:irrCalc(p10),e10:irrCalc(e10),
+    tv5:tv,resDebt5:b5A,eqExit5:tv-b5A,landVal5:acq*Math.pow(1+sh.landA,5),
+    tv10:tv,resDebt10:b10A,eqExit10:tv-b10A,landVal10:acq*Math.pow(1+sh.landA,10)};
+}
+
+function setScen(s){
+  scen=s;
+  document.getElementById('btnA').className='scen-btn'+(s==='A'?' active':'');
+  document.getElementById('btnB').className='scen-btn'+(s==='B'?' active':'');
+  buildLandCards(s);buildScenSliders(s);calc();
+}
+
+function calc(){
+  const sh=getShared();
+  // shared display
+  const shMap={pph:'€',op:'€0.00',pac:'€',staff:'€',exitM:'×',landA:'%',ltvA:'%',rateA:'%',termA:'yr',graceA:'yr',ltvB:'%',rateB:'%',termB:'yr',graceB:'yr'};
+  document.getElementById('pphO').textContent='€'+sh.pph.toLocaleString();
+  document.getElementById('opO').textContent='€'+sh.op.toFixed(2);
+  document.getElementById('pacO').textContent='€'+Math.round(sh.pac).toLocaleString();
+  document.getElementById('staffO').textContent='€'+Math.round(sh.staff).toLocaleString();
+  document.getElementById('exitMO').textContent=sh.exitM+'×';
+  document.getElementById('landAO').textContent=(sh.landA*100).toFixed(1)+'%';
+  document.getElementById('ltvAO').textContent=Math.round(sh.ltvA*100)+'%';
+  document.getElementById('rateAO').textContent=(sh.rateA*100).toFixed(2)+'%';
+  document.getElementById('termAO').textContent=sh.termA+' yrs';
+  document.getElementById('graceAO').textContent=sh.graceA+' yrs';
+  document.getElementById('ltvBO').textContent=Math.round(sh.ltvB*100)+'%';
+  document.getElementById('rateBO').textContent=(sh.rateB*100).toFixed(2)+'%';
+  document.getElementById('termBO').textContent=sh.termB+' yrs';
+  document.getElementById('graceBO').textContent=sh.graceB+' yrs';
+
+  // scen-specific display
+  if(scen==='A'){
+    [{id:'aIrrY',out:'aIrrYO',unit:'kg'},{id:'aDryY',out:'aDryYO',unit:'kg'},{id:'aOcI',out:'aOcIO',unit:'€'},{id:'aOcD',out:'aOcDO',unit:'€'}].forEach(({id,out,unit})=>{
+      const el=document.getElementById(id);if(!el)return;
+      document.getElementById(out).textContent=unit==='€'?'€'+Math.round(+el.value).toLocaleString():(+el.value).toLocaleString()+' kg';
+    });
+  } else {
+    [{id:'bIrrY',out:'bIrrYO',unit:'kg'},{id:'bDryY',out:'bDryYO',unit:'kg'},{id:'bTradY',out:'bTradYO',unit:'kg'},{id:'bCx',out:'bCxO',unit:'€'},{id:'bOcI',out:'bOcIO',unit:'€'},{id:'bOcD',out:'bOcDO',unit:'€'},{id:'bOcT',out:'bOcTO',unit:'€'}].forEach(({id,out,unit})=>{
+      const el=document.getElementById(id);if(!el)return;
+      document.getElementById(out).textContent=unit==='€'?'€'+Math.round(+el.value).toLocaleString():(+el.value).toLocaleString()+' kg';
+    });
+  }
+
+  const m=computeModel(scen,sh.op,sh);
+  const{ebitda,totInv,totEq,pniA,pniB,intAg,intBg,lA,lB,acq,cx,oliveHa,ramp,notes,eA,eB}=m;
+  const totPni=pniA+pniB,intSS=lA*sh.rateA+lB*sh.rateB,fcfSS=ebitda-totPni;
+
+  // debt structure
+  document.getElementById('s_acq').textContent=fmt(acq);
+  document.getElementById('s_lA').textContent=fmt(lA);
+  document.getElementById('s_eA').textContent=fmt(eA);
+  document.getElementById('s_intAg').textContent=fmt(intAg);
+  document.getElementById('s_pniA').textContent=fmt(pniA);
+  document.getElementById('s_cx').textContent=scen==='B'?fmt(cx):'N/A — Scenario A';
+  document.getElementById('s_lB').textContent=scen==='B'?fmt(lB):'—';
+  document.getElementById('s_eB').textContent=scen==='B'?fmt(eB):'—';
+  document.getElementById('s_intBg').textContent=scen==='B'?fmt(intBg):'—';
+  document.getElementById('s_pniB').textContent=scen==='B'?fmt(pniB):'—';
+  document.getElementById('s_totInv').textContent=fmt(totInv);
+  document.getElementById('s_totDebt').textContent=fmt(lA+lB);
+  document.getElementById('s_totEq').textContent=fmt(totEq);
+  document.getElementById('s_ltvBlend').textContent=fmtP((lA+lB)/totInv*100);
+  document.getElementById('s_gear').textContent=fmtX((lA+lB)/totEq);
+  document.getElementById('facBLabel').textContent=scen==='B'?'':' (N/A — Scenario A)';
+
+  document.getElementById('cfInfo').textContent=scen==='A'
+    ?'Scenario A: existing olive fully productive from Year 1. No ramp. Facility B = €0.'
+    :'Scenario B: SHD blocks ramp Yr1=0%, Yr2=10%, Yr3=30%, Yr4=70%, Yr5+=100%. Traditional retained (102.9 ha) produces from Year 1.';
+
+  // P&L
+  let plRows;
+  if(scen==='A'){
+    const irrY=gv('aIrrY',5800),dryY=gv('aDryY',1900),ocI=gv('aOcI',1400),ocD=gv('aOcD',490);
+    const revI=A_IRR_HA*irrY*sh.op,revD=A_DRY_HA*dryY*sh.op,gross=revI+revD+sh.pac;
+    const opI=A_IRR_HA*ocI,opD=A_DRY_HA*ocD,totOp=opI+opD+sh.staff;
+    plRows=[{l:'Irrigated olive revenue (272.27 ha)',v:revI},{l:'Dryland olive revenue (61.35 ha)',v:revD},{l:'PAC subsidy',v:sh.pac},{l:'Total gross revenue',v:gross,cls:'tot'},{l:'Irrigated op. costs',v:-opI},{l:'Dryland op. costs',v:-opD},{l:'Staff & overhead',v:-sh.staff},{l:'Total operating costs',v:-totOp,cls:'tot'},{l:'EBITDA',v:ebitda,cls:'ebt'},{l:'EBITDA margin',pct:ebitda/gross},{l:'Total debt service (P&I)',v:-totPni},{l:'Free cashflow',v:fcfSS,cls:'fcf'}];
+  } else {
+    const irrY=gv('bIrrY',9000),dryY=gv('bDryY',3500),tradY=gv('bTradY',5800),ocI=gv('bOcI',1600),ocD=gv('bOcD',750),ocT=gv('bOcT',1200);
+    const revI=B_SHD_I*irrY*sh.op,revD=B_SHD_D*dryY*sh.op,revT=B_TRAD*tradY*sh.op,gross=revI+revD+revT+sh.pac;
+    const opI=B_SHD_I*ocI,opD=B_SHD_D*ocD,opT=B_TRAD*ocT,totOp=opI+opD+opT+sh.staff;
+    plRows=[{l:'SHD irrigated revenue (127.9 ha)',v:revI},{l:'SHD dryland revenue (400 ha)',v:revD},{l:'Traditional retained revenue (102.9 ha)',v:revT},{l:'PAC subsidy',v:sh.pac},{l:'Total gross revenue',v:gross,cls:'tot'},{l:'SHD irrigated op. costs',v:-opI},{l:'SHD dryland op. costs',v:-opD},{l:'Traditional op. costs',v:-opT},{l:'Staff & overhead',v:-sh.staff},{l:'Total operating costs',v:-totOp,cls:'tot'},{l:'EBITDA',v:ebitda,cls:'ebt'},{l:'EBITDA margin',pct:ebitda/gross},{l:'Total debt service (P&I)',v:-totPni},{l:'Free cashflow',v:fcfSS,cls:'fcf'}];
+  }
+  const plBody=document.getElementById('plBody');plBody.innerHTML='';
+  plRows.forEach(r=>{
+    const tr=document.createElement('tr');if(r.cls)tr.className=r.cls;
+    const td1=document.createElement('td');td1.textContent=r.l;tr.appendChild(td1);
+    const td2=document.createElement('td');
+    if(r.pct!==undefined)td2.textContent=fmtP(r.pct*100);
+    else{td2.textContent=fmt(r.v);if(r.v<0)td2.className='neg';else if(r.v>0&&(r.cls==='ebt'||r.cls==='fcf'))td2.className='pos';}
+    tr.appendChild(td2);plBody.appendChild(tr);
+  });
+
+  // CF table
+  const p5cf=[-totInv],e5cf=[-totEq],p10cf=[-totInv],e10cf=[-totEq];
+  const cfBody=document.getElementById('cfBody');cfBody.innerHTML='';
+  let cumFCF=0;
+  for(let yr=0;yr<=10;yr++){
+    const r=ramp[yr]||0,eb=yr===0?0:ebitda*r;
+    const inGA=yr<=sh.graceA,inGB=yr<=sh.graceB;
+    const dsA=yr===0?0:(inGA?intAg:pniA),dsB=yr===0?0:(inGB?intBg:pniB);
+    const tDS=dsA+dsB,fcf=eb-tDS;
+    if(yr>0)cumFCF+=fcf;
+    const amA=Math.max(0,yr-sh.graceA),amB=Math.max(0,yr-sh.graceB);
+    const bA=loanBal(lA,sh.rateA,pniA,amA),bB=loanBal(lB,sh.rateB,pniB,amB);
+    if(yr>0&&yr<=5){let pc=eb,ec=fcf;if(yr===5){const tv=eb*sh.exitM;pc=eb+tv;ec=fcf+(tv-bA-bB);}p5cf.push(pc);e5cf.push(ec);}
+    if(yr>0){let pc=eb,ec=fcf;if(yr===10){const tv=eb*sh.exitM;pc=eb+tv;ec=fcf+(tv-bA-bB);}p10cf.push(pc);e10cf.push(ec);}
+    const tr=document.createElement('tr');
+    if(yr===0||yr===5||yr===10)tr.className='hi';
+    const ef=yr===5?' ★ 5yr exit':yr===10?' ★ 10yr exit':'';
+    const fc=fcf<0?'neg':'pos',cc=cumFCF<0?'neg':'pos';
+    const dal=(yr===0||inGA)?'(grace)':'(amort)',dbl=(yr===0||inGB)?'(grace)':'(amort)';
+    tr.innerHTML=`<td>Yr ${yr} (${yr===0?'Q3 2026':2026+yr})${ef}</td>
+      <td style="text-align:left;font-size:10px;color:#888;">${notes[yr]||''}</td>
+      <td>${yr===0?'—':fmt(eb)}</td>
+      <td style="color:#c07020;">${yr===0?'—':fmt(-dsA)+' <span style="font-size:9px;color:#aaa;">'+dal+'</span>'}</td>
+      <td style="color:#c07020;">${yr===0?'—':(scen==='B'?fmt(-dsB)+' <span style="font-size:9px;color:#aaa;">'+dbl+'</span>':'—')}</td>
+      <td style="color:#c07020;font-weight:600;">${yr===0?'—':fmt(-tDS)}</td>
+      <td class="${fc}" style="font-weight:600;">${yr===0?'—':fmt(fcf)}</td>
+      <td class="${cc}">${yr===0?'—':fmt(cumFCF)}</td>`;
+    cfBody.appendChild(tr);
+  }
+
+  const irr=computeIRRs(m,sh);
+  document.getElementById('m_totInv').textContent=fmt(totInv);
+  document.getElementById('m_ebitdaHa').textContent='€'+Math.round(ebitda/oliveHa).toLocaleString()+'/ha';
+  document.getElementById('m_oliveHaSub').textContent=oliveHa.toFixed(1)+' ha total olive';
+  document.getElementById('m_cxHa').textContent=scen==='B'?'€'+Math.round(cx/B_CONV).toLocaleString()+'/ha':'N/A';
+  document.getElementById('m_cxHaSub').textContent=scen==='B'?'527.9 ha converted':'No CAPEX — Scenario A';
+  document.getElementById('m_unlevYld').textContent=fmtP(ebitda/totInv*100);
+  document.getElementById('m_levYld').textContent=fmtP(fcfSS/totEq*100);
+  document.getElementById('m_dscr').textContent=fmtX(ebitda/totPni);
+  document.getElementById('m_icr').textContent=fmtX(ebitda/intSS);
+  document.getElementById('m_eqPb').textContent=fmtYr(fcfSS>0?totEq/fcfSS:NaN);
+  document.getElementById('m_projIRR5').textContent=fmtP(irr.p5*100);
+  document.getElementById('m_eqIRR5').textContent=fmtP(irr.e5*100);
+  document.getElementById('m_tv5').textContent=fmt(irr.tv5);
+  document.getElementById('m_resDebt5').textContent=fmt(irr.resDebt5);
+  document.getElementById('m_eqExit5').textContent=fmt(irr.eqExit5);
+  document.getElementById('m_landVal5').textContent=fmt(irr.landVal5);
+  document.getElementById('m_projIRR10').textContent=fmtP(irr.p10*100);
+  document.getElementById('m_eqIRR10').textContent=fmtP(irr.e10*100);
+  document.getElementById('m_tv10').textContent=fmt(irr.tv10);
+  document.getElementById('m_resDebt10').textContent=fmt(irr.resDebt10);
+  document.getElementById('m_eqExit10').textContent=fmt(irr.eqExit10);
+  document.getElementById('m_landVal10').textContent=fmt(irr.landVal10);
+
+  // verdict
+  const v=document.getElementById('verdict');
+  const dscr=ebitda/totPni,p5p=irr.p5*100,e5p=irr.e5*100,p10p=irr.p10*100,e10p=irr.e10*100;
+  if(ebitda<=0){v.className='verdict stop';v.textContent='Negative EBITDA — debt cannot be serviced at these assumptions.';}
+  else if(dscr<1.0){v.className='verdict stop';v.textContent=`DSCR ${fmtX(dscr)} — EBITDA does not cover debt service. 5yr: Proj ${fmtP(p5p)} / Eq ${fmtP(e5p)} | 10yr: Proj ${fmtP(p10p)} / Eq ${fmtP(e10p)}.`;}
+  else if(dscr<1.25){v.className='verdict caution';v.textContent=`DSCR ${fmtX(dscr)} is thin (banks require ~1.25×). 5yr IRR: Proj ${fmtP(p5p)} / Eq ${fmtP(e5p)} | 10yr: Proj ${fmtP(p10p)} / Eq ${fmtP(e10p)}.`;}
+  else if(p5p>=10&&e5p>=12){v.className='verdict go';v.textContent=`5yr: Proj ${fmtP(p5p)} / Eq ${fmtP(e5p)} | 10yr: Proj ${fmtP(p10p)} / Eq ${fmtP(e10p)} | DSCR ${fmtX(dscr)}. Strong returns.`;}
+  else if(p5p>=7||p10p>=7){v.className='verdict go';v.textContent=`5yr: Proj ${fmtP(p5p)} / Eq ${fmtP(e5p)} | 10yr: Proj ${fmtP(p10p)} / Eq ${fmtP(e10p)} | DSCR ${fmtX(dscr)}. Acceptable returns.`;}
+  else{v.className='verdict caution';v.textContent=`5yr: Proj ${fmtP(p5p)} / Eq ${fmtP(e5p)} | 10yr: Proj ${fmtP(p10p)} / Eq ${fmtP(e10p)} | DSCR ${fmtX(dscr)}. Modest — sensitive to olive price.`;}
+
+  // sensitivity
+  const SENS=[0.50,0.60,0.70,0.80,0.90,1.00,1.10,1.20,1.30,1.40,1.50,1.60,1.70,1.80,1.90,2.00];
+  const sb=document.getElementById('sensBody');sb.innerHTML='';
+  SENS.forEach(p=>{
+    const sm=computeModel(scen,p,sh);
+    const si=computeIRRs(sm,sh);
+    const sd=sm.ebitda/(sm.pniA+sm.pniB);
+    const isC=Math.abs(p-sh.op)<0.001;
+    const tr=document.createElement('tr');if(isC)tr.className='sens-hi';
+    const dc=sd<1?'color:#c0392b':sd<1.25?'color:#c07020':'';
+    tr.innerHTML=`<td>€${p.toFixed(2)}</td><td>${fmt(sm.ebitda)}</td><td>€${Math.round(sm.ebitda/sm.oliveHa).toLocaleString()}/ha</td><td style="${dc}">${fmtX(sd)}</td><td>${fmtP(si.p5*100)}</td><td>${fmtP(si.e5*100)}</td><td>${fmtP(si.p10*100)}</td><td>${fmtP(si.e10*100)}</td>`;
+    sb.appendChild(tr);
+  });
+}
+
+['pph','op','pac','staff','exitM','landA','ltvA','rateA','termA','graceA','ltvB','rateB','termB','graceB'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+
+buildLandCards('A');
+buildScenSliders('A');
+calc();
+</script>
+</body>
+</html>
